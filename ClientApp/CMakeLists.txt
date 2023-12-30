@@ -1,3 +1,5 @@
+# hoor_buch/ClientApp/CMakeLists.txt
+
 # Specify the minimum version for CMake
 cmake_minimum_required(VERSION 3.10)
 
@@ -15,6 +17,8 @@ target_include_directories(ClientApp PRIVATE include)
 
 # Enable testing with CTest
 enable_testing()
+# Include Google Test
+add_subdirectory(googletest)
 
 # Add test subdirectory
 add_subdirectory(tests)
