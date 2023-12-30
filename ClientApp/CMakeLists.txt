@@ -1,0 +1,20 @@
+# Specify the minimum version for CMake
+cmake_minimum_required(VERSION 3.10)
+
+# Project's name
+project(ClientApp)
+
+# Set the C++ standard you wish to use (you could use 11, 14, 17, etc.)
+set(CMAKE_CXX_STANDARD 17)
+
+# Add executable target with source files listed
+add_executable(ClientApp src/main.cpp)
+
+# If you have include files, you can add them here
+target_include_directories(ClientApp PRIVATE include)
+
+# Enable testing with CTest
+enable_testing()
+
+# Add test subdirectory
+add_subdirectory(tests)
