@@ -1,5 +1,6 @@
 #include <iostream>
 #include "math_utils.h"
+#include "other.h"
 
 int main(int argc, char **argv)
 {
