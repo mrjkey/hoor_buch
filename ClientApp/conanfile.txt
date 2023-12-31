@@ -1,0 +1,6 @@
+[requires]
+miniupnpc/2.2.2@
+
+[generators]
+CMakeDeps
+CMakeToolchain
