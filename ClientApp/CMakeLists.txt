@@ -13,6 +13,25 @@ set(CMAKE_CXX_STANDARD 17)
 file(GLOB SOURCES "src/*.cpp")
 add_executable(ClientApp ${SOURCES})
 
+# # Find Boost on your system
+# find_package(Boost REQUIRED COMPONENTS system thread)
+# Set the Boost root (path to the Boost installation).
+set(BOOST_ROOT C:/Boost/boost_1_84_0)
+
+# You can also set the library directory if needed
+set(BOOST_LIBRARYDIR C:/Boost/boost_1_84_0/stage/lib)
+
+# Find Boost on your system
+find_package(Boost 1.84.0 REQUIRED COMPONENTS)
+
+if(Boost_FOUND)
+    include_directories(${Boost_INCLUDE_DIRS})
+    link_directories(${Boost_LIBRARY_DIRS})
+    # target_link_libraries(ClientApp ${Boost_LIBRARIES})
+    # Link against the Winsock library for Boost.Asio
+    target_link_libraries(ClientApp ${Boost_LIBRARIES} Ws2_32)
+endif()
+
 # If you have include files, you can add them here
 target_include_directories(ClientApp PUBLIC include)
 
