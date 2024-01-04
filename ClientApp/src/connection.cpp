@@ -16,8 +16,8 @@ void start_server(asio::io_context &io_context, short port)
     {
         tcp::socket socket(io_context);
         acceptor.accept(socket);
-        std::string message = "Hello from Server!";
-        std::cout << "Server sending: " << message << std::endl;
+        std::string message = "Hello from Server!\n";
+        std::cout << "Server sending: " << message;
         boost::system::error_code ignored_error;
         boost::asio::write(socket, asio::buffer(message), ignored_error);
     }
