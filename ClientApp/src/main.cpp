@@ -22,6 +22,8 @@ int main(int argc, char **argv)
     // std::cout << "Starting Client on port " << port << std::endl;
     // std::cout << "Connecting to peer at " << peer_address << ":" << peer_port << std::endl;
 
+    std::cout << "Starting on port " << std::endl;
+
     try
     {
         if (argc != 4)
@@ -35,11 +37,11 @@ int main(int argc, char **argv)
 
         if (std::string(argv[3]) == "server")
         {
-            start_server(io_context, port);
+            start_server(io_context, port, "../test.txt");
         }
         else
         {
-            start_client(io_context, argv[1], port);
+            start_client(io_context, argv[1], port, "test.txt");
         }
     }
     catch (std::exception &e)
