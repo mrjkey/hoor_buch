@@ -113,7 +113,9 @@ target_include_directories(ClientApp PUBLIC include)
 enable_testing()
 
 # Include Google Test
-add_subdirectory(googletest)
+# add_subdirectory(googletest)
+# Find the Google Test package
+find_package(GTest CONFIG REQUIRED)
 
 # Add test subdirectory
 add_subdirectory(tests)
