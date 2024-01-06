@@ -72,6 +72,12 @@ int main(int argc, char **argv)
     }
     glfwMakeContextCurrent(window);
 
+    // Initialize ImGui and its bindings for OpenGL3 and GLFW
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your OpenGL version if needed
+
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
@@ -97,6 +103,14 @@ int main(int argc, char **argv)
 
         glfwSwapBuffers(window);
     }
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }
