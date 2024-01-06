@@ -51,3 +51,23 @@ mingw32-make
 2a02:8109:b69a:dd00:ce08:82ef:c14c:2bf9
 
 2a02:8109:b69a:dd00:a064:2538:66f:abfd
+
+# ImGui
+
+https://github.com/ocornut/imgui.git
+
+git clone --recursive https://github.com/ocornut/imgui.git -b docking
+
+git clone https://github.com/glfw/glfw.git
+
+git clone https://github.com/Microsoft/vcpkg.git
+
+.\vcpkg\bootstrap-vcpkg.bat
+
+.\vcpkg\vcpkg.exe install glfw3
+
+./bootstrap-vcpkg.sh
+
+.\vcpkg.exe integrate install
+
+.\vcpkg.exe install gtest
