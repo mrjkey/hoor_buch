@@ -59,6 +59,18 @@ int main(int argc, char **argv)
     // if not, create one
     if (std::filesystem::exists("library.yaml"))
     {
+        YAML::Node config = YAML::LoadFile("library.yaml");
+
+        if (!config["audiobooks_directory"])
+        {
+            std::cout << "no directory in yaml file, adding one" << std::endl;
+            // Update the audiobooks_directory value
+
+            config["audiobooks_directory"] = "C:\\Users";
+            std::ofstream fout("library.yaml");
+            fout << config;
+            fout.close();
+        }
     }
     else
     {
@@ -67,6 +79,7 @@ int main(int argc, char **argv)
         config["audiobooks_directory"] = "D:\\Torrents\\Books";
         std::ofstream fout("library.yaml");
         fout << config;
+        fout.close();
     }
 
     player.loadLibrary("library.yaml");
@@ -115,17 +128,32 @@ int main(int argc, char **argv)
         {
             IGFD::FileDialogConfig config;
             config.path = ".";
-            ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
+            ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", "Choose File", nullptr, config);
         }
 
         // display
-        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+        if (ImGuiFileDialog::Instance()->Display("ChooseDirDlgKey"))
         {
             // action if OK
             if (ImGuiFileDialog::Instance()->IsOk())
             {
-                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                std::string directoryPath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                // Load the YAML file
+                YAML::Node config = YAML::LoadFile("library.yaml");
+
+                std::cout << directoryPath << std::endl;
+                // Update the audiobooks_directory value
+
+                config["audiobooks_directory"] = directoryPath;
+
+                // config["audiobooks_directory"] = directoryPath;
+
+                std::cout << "ahhhhh" << std::endl;
+                // Write the file back
+                std::ofstream fout("library.yaml");
+                fout << config;
+                fout.close();
+                player.loadLibrary("library.yaml");
                 // action
             }
 
