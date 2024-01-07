@@ -51,7 +51,6 @@ target_include_directories(imgui PUBLIC
 # target_link_libraries(ClientApp "${CMAKE_CURRENT_SOURCE_DIR}/glfw-3.3.9/build/src/Debug/glfw3.lib")
 
 
-
 # Find and link GLFW
 find_package(glfw3 REQUIRED)
 target_link_libraries(ClientApp glfw)
@@ -70,14 +69,34 @@ target_link_libraries(ClientApp sfml-audio)
 # Link ImGui with your application
 target_link_libraries(ClientApp imgui)
 
+# Add ImGuiFileDialog
+add_subdirectory(ImGuiFileDialog)
+
+# Link ImGuiFileDialog with your application
+target_link_libraries(ClientApp ImGuiFileDialog)
+
+# Add ImGui include directory to ImGuiFileDialog
+target_include_directories(ImGuiFileDialog PRIVATE ${IMGUI_DIR})
+
+# Find Yaml-cpp
+find_package(yaml-cpp CONFIG REQUIRED)
+
+# Link Yaml-cpp
+target_link_libraries(ClientApp yaml-cpp::yaml-cpp)
+
+
 # Conditionally set the Boost root and library directories based on the OS
 if(WIN32)
     # Set the Boost root (path to the Boost installation).
-    set(BOOST_ROOT C:/Boost/boost_1_84_0)
+    # set(BOOST_ROOT C:/Boost/boost_1_84_0)
     # You can also set the library directory if needed
-    set(BOOST_LIBRARYDIR C:/Boost/boost_1_84_0/stage/lib)
+    # set(BOOST_LIBRARYDIR C:/Boost/boost_1_84_0/stage/lib)
 
     # Find Boost on your system
+    if(POLICY CMP0074)
+        cmake_policy(SET CMP0074 NEW)
+    endif()
+
     find_package(Boost 1.84.0 REQUIRED COMPONENTS)
 elseif(UNIX AND NOT APPLE)
     # For Ubuntu, you might not need to explicitly set the Boost root if installed via package manager.

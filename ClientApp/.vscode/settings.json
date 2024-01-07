@@ -1,5 +1,11 @@
 {
   "C_Cpp.errorSquiggles": "enabled",
+    // "files.exclude": {
+    //     "**/vcpkg": true
+    // },
+    // "search.exclude": {
+    //     "**/vcpkg": true
+    // },
   "files.associations": {
     "any": "cpp",
     "array": "cpp",

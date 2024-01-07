@@ -6,10 +6,13 @@
 #include "GLFW/glfw3.h"
 #include <GL/gl.h>
 #include <SFML/Audio.hpp>
+#include <fstream>
+#include "ImGuiFileDialog.h"
 
 #include "math_utils.h"
 #include "connection.h"
 #include "BookProgress.h"
+#include "AudioBookPlayer.h"
 
 // #include <portaudio.h>
 
@@ -49,7 +52,24 @@ int main(int argc, char **argv)
     sf::Music music;
     if (!music.openFromFile("D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3"))
         return -1; // error
-    music.play();
+    // music.play();
+    AudioBookPlayer player;
+
+    // check if a yaml file exists for the libarary
+    // if not, create one
+    if (std::filesystem::exists("library.yaml"))
+    {
+    }
+    else
+    {
+        // create a yaml file
+        YAML::Node config;
+        config["audiobooks_directory"] = "D:\\Torrents\\Books";
+        std::ofstream fout("library.yaml");
+        fout << config;
+    }
+
+    player.loadLibrary("library.yaml");
 
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -88,6 +108,29 @@ int main(int argc, char **argv)
             std::cout << "Stop" << std::endl;
             // Stop the audio because
             music.stop();
+        }
+
+        // open Dialog Simple
+        if (ImGui::Button("Open File Dialog"))
+        {
+            IGFD::FileDialogConfig config;
+            config.path = ".";
+            ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
+        }
+
+        // display
+        if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey"))
+        {
+            // action if OK
+            if (ImGuiFileDialog::Instance()->IsOk())
+            {
+                std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+                std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+                // action
+            }
+
+            // close
+            ImGuiFileDialog::Instance()->Close();
         }
 
         ImGui::Text("This is some useful text.");
