@@ -1,15 +1,15 @@
 #include <iostream>
+#include "math_utils.h"
+#include "connection.h"
 #include <boost/asio.hpp>
+
+// #include <gtk/gtk.h>
+
 #include "imgui.h"
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "GLFW/glfw3.h"
 #include <GL/gl.h>
-#include <SFML/Audio.hpp>
-
-#include "math_utils.h"
-#include "connection.h"
-#include "BookProgress.h"
 
 // #include <portaudio.h>
 
@@ -18,16 +18,53 @@ namespace asio = boost::asio;
 
 int main(int argc, char **argv)
 {
-    std::cout << "Starting Client Application" << std::endl;
+    // Check the number of parameters
+    // if (argc < 3)
+    // {
+    //     std::cerr << "Usage: " << argv[0] << " <port> <peer_address> <peer_port>" << std::endl;
+    //     return 1;
+    // }
 
-    // initialize glfw
+    // int port = std::stoi(argv[1]);
+    // std::string peer_address = argv[2];
+    // int peer_port = std::stoi(argv[3]);
+
+    // std::cout << "Starting Client on port " << port << std::endl;
+    // std::cout << "Connecting to peer at " << peer_address << ":" << peer_port << std::endl;
+
+    std::cout << "Starting on port " << std::endl;
+
+    // try
+    // {
+    //     if (argc != 4)
+    //     {
+    //         std::cerr << "Usage: ClientApp <server> <port> <mode: server|client>" << std::endl;
+    //         return 1;
+    //     }
+
+    //     asio::io_context io_context;
+    //     short port = std::stoi(argv[2]);
+
+    //     if (std::string(argv[3]) == "server")
+    //     {
+    //         start_server(io_context, port, "../test.txt");
+    //     }
+    //     else
+    //     {
+    //         start_client(io_context, argv[1], port, "test.txt");
+    //     }
+    // }
+    // catch (std::exception &e)
+    // {
+    //     std::cerr << e.what() << std::endl;
+    // }
+
     if (!glfwInit())
     {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return -1;
     }
 
-    // Create a windowed mode window and its OpenGL context
     GLFWwindow *window = glfwCreateWindow(640, 480, "My Window", NULL, NULL);
     if (!window)
     {
@@ -35,8 +72,6 @@ int main(int argc, char **argv)
         glfwTerminate();
         return -1;
     }
-
-    // Make the window's context current
     glfwMakeContextCurrent(window);
 
     // Initialize ImGui and its bindings for OpenGL3 and GLFW
@@ -45,16 +80,9 @@ int main(int argc, char **argv)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your OpenGL version if needed
 
-    // Load a music to play
-    sf::Music music;
-    if (!music.openFromFile("D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3"))
-        return -1; // error
-    music.play();
-
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
-        // Poll and handle events (inputs, window resize, etc.)
         glfwPollEvents();
 
         // Start the Dear ImGui frame
@@ -67,27 +95,21 @@ int main(int argc, char **argv)
 
         if (ImGui::Button("Play"))
         {
-            std::cout << "Play" << std::endl;
             // Trigger audio playback
-            music.play();
         }
 
         ImGui::SameLine();
 
         if (ImGui::Button("Pause"))
         {
-            std::cout << "Pause" << std::endl;
             // Pause the audio
-            music.pause();
         }
 
         ImGui::SameLine();
 
         if (ImGui::Button("Stop"))
         {
-            std::cout << "Stop" << std::endl;
             // Stop the audio because
-            music.stop();
         }
 
         ImGui::Text("This is some useful text.");

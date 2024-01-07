@@ -60,6 +60,12 @@ target_link_libraries(ClientApp glfw)
 find_package(OpenGL REQUIRED)
 target_link_libraries(ClientApp OpenGL::GL)
 
+# Find SFML
+find_package(SFML 2.5 COMPONENTS audio REQUIRED)
+
+# Link SFML
+target_link_libraries(ClientApp sfml-audio)
+
 
 # Link ImGui with your application
 target_link_libraries(ClientApp imgui)

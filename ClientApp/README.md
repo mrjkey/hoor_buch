@@ -1,3 +1,38 @@
+# ClientApp
+
+This is a brief description of your project.
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+### Prerequisites
+
+What things you need to install the software and how to install them.
+
+<!-- Installing -->
+
+### Installing
+
+A step by step series of examples that tell you how to get a development environment running.
+
+Running the tests
+Explain how to run the automated tests for this system.
+
+Built With
+PortAudio - The audio library used
+CMake - Build system
+Contributing
+Please read CONTRIBUTING.md for details on our code of conduct, and the process for submitting pull requests to us.
+
+License
+This project is licensed under the MIT License - see the LICENSE.md file for details
+
+Acknowledgments
+Hat tip to anyone whose code was used
+Inspiration
+etc
+
 # Setup
 
 ### get google test
@@ -71,3 +106,7 @@ git clone https://github.com/Microsoft/vcpkg.git
 .\vcpkg.exe integrate install
 
 .\vcpkg.exe install gtest
+
+./vcpkg install libsndfile
+
+./vcpkg install portaudio
