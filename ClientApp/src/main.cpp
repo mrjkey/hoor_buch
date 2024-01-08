@@ -1,3 +1,5 @@
+// src/main.cpp
+
 #include <iostream>
 #include <boost/asio.hpp>
 #include "imgui.h"
@@ -123,12 +125,28 @@ int main(int argc, char **argv)
             music.stop();
         }
 
-        // open Dialog Simple
+        // Open Dialog Simple
         if (ImGui::Button("Open File Dialog"))
         {
-            IGFD::FileDialogConfig config;
-            config.path = ".";
-            ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", "Choose File", nullptr, config);
+            // Load the YAML file to get the current audiobooks directory
+            YAML::Node config;
+            if (std::filesystem::exists("library.yaml"))
+            {
+                config = YAML::LoadFile("library.yaml");
+            }
+            else
+            {
+                std::cerr << "library.yaml not found, defaulting to current directory." << std::endl;
+                config["audiobooks_directory"] = ".";
+            }
+
+            // Retrieve the audiobooks_directory from the YAML config, default to current directory if not found
+            std::string initialPath = config["audiobooks_directory"] ? config["audiobooks_directory"].as<std::string>() : ".";
+
+            // Configure the file dialog to start in the audiobooks_directory
+            IGFD::FileDialogConfig fileDialogConfig;
+            fileDialogConfig.path = initialPath; // Set the initial path to the audiobooks_directory
+            ImGuiFileDialog::Instance()->OpenDialog("ChooseDirDlgKey", "Choose File", nullptr, fileDialogConfig);
         }
 
         // display
