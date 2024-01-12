@@ -1,7 +1,6 @@
 // include/BookProgress.h
 
-#ifndef BOOKPROGRESS_H
-#define BOOKPROGRESS_H
+#pragma once
 
 #include <string>
 
@@ -11,5 +10,3 @@ public:
     void saveProgress(std::string filename, int position);
     int loadProgress(std::string filename);
 };
-
-#endif // BOOKPROGRESS_H

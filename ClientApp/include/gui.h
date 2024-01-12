@@ -3,5 +3,6 @@
 #define GUI_H
 
 void SetModernImGuiStyle();
+void SetDarkStyle();
 
 #endif // GUI_H
