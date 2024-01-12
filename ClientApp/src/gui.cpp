@@ -1,7 +1,5 @@
 // ClientApp/src/gui.cpp
 
-#include "imgui.h"
-
 #include "gui.h"
 
 // Set ImGui style to a more sleek/modern appearance
@@ -67,4 +65,50 @@ void SetDarkStyle()
     style.FrameBorderSize = 1.0f;
     style.PopupBorderSize = 1.0f;
     // ... other style settings
+}
+
+void DisplayAlbumArt(GLuint textureId)
+{
+    // Display album art
+    ImGui::Image((void *)(intptr_t)textureId, ImVec2(100, 100));
+}
+
+// Display function for the library
+void DisplayLibrary(const std::vector<Audiobook> &audiobooks, sf::Music &music)
+{
+    if (ImGui::Begin("Library", nullptr, ImGuiWindowFlags_NoCollapse))
+    {
+        for (const auto &book : audiobooks)
+        {
+            if (ImGui::TreeNode(book.title.c_str()))
+            {
+                // Display progress bar for the audiobook
+                ImGui::ProgressBar(book.progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
+
+                if (ImGui::Button("Play"))
+                {
+                    // Trigger audio playback
+                    music.play();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Pause"))
+                {
+                    // Pause the audio
+                    music.pause();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Stop"))
+                {
+                    // Stop the audio
+                    music.stop();
+                }
+
+                // Display info and controls for each audiobook here
+                // ...
+
+                ImGui::TreePop();
+            }
+        }
+    }
+    ImGui::End();
 }

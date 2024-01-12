@@ -1,8 +1,14 @@
 // ClientApp/include/gui.h
-#ifndef GUI_H
-#define GUI_H
+
+#pragma once
+
+#include <vector>
+#include "datatypes.h"
+#include <SFML/Audio.hpp>
+#include "GLFW/glfw3.h"
+#include "imgui.h"
 
 void SetModernImGuiStyle();
 void SetDarkStyle();
-
-#endif // GUI_H
+void DisplayAlbumArt(GLuint textureId);
+void DisplayLibrary(const std::vector<Audiobook> &audiobooks, sf::Music &music);
