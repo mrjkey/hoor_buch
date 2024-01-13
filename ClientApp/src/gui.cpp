@@ -76,41 +76,43 @@ void DisplayAlbumArt(GLuint textureId)
 // Display function for the library
 void DisplayLibrary(const std::vector<Audiobook> &audiobooks, sf::Music &music)
 {
-    if (ImGui::Begin("Library", nullptr, ImGuiWindowFlags_NoCollapse))
+    // nest the library as a child of another component
+    ImGui::BeginChild("Library", ImVec2(0, 0), true);
+
+    // Display the library as a tree
+    for (const auto &book : audiobooks)
     {
-        for (const auto &book : audiobooks)
+        if (ImGui::TreeNode(book.title.c_str()))
         {
-            if (ImGui::TreeNode(book.title.c_str()))
-            {
-                // Display progress bar for the audiobook
-                ImGui::ProgressBar(book.progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
+            // Display progress bar for the audiobook
+            ImGui::ProgressBar(book.progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
 
-                if (ImGui::Button("Play"))
-                {
-                    // Trigger audio playback
-                    music.play();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Pause"))
-                {
-                    // Pause the audio
-                    music.pause();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Stop"))
-                {
-                    // Stop the audio
-                    music.stop();
-                }
+            // Display info and controls for each audiobook here
+            // ...
 
-                // Display info and controls for each audiobook here
-                // ...
-
-                ImGui::TreePop();
-            }
+            ImGui::TreePop();
         }
     }
-    ImGui::End();
+
+    ImGui::EndChild();
+
+    // if (ImGui::Begin("Library", nullptr, ImGuiWindowFlags_NoCollapse))
+    // {
+    //     for (const auto &book : audiobooks)
+    //     {
+    //         if (ImGui::TreeNode(book.title.c_str()))
+    //         {
+    //             // Display progress bar for the audiobook
+    //             ImGui::ProgressBar(book.progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
+
+    //             // Display info and controls for each audiobook here
+    //             // ...
+
+    //             ImGui::TreePop();
+    //         }
+    //     }
+    // }
+    // ImGui::End();
 }
 
 void DisplayNavigationPanel()

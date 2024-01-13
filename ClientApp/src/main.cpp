@@ -227,10 +227,10 @@ void gui_new_frame()
 
 void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player, std::vector<Audiobook> *audiobooks)
 {
-    //     // Fill the entire window with the Audio Book Player UI
-    // ImGui::SetNextWindowPos(ImVec2(0, 0));
-    // ImVec2 viewportSize = ImGui::GetIO().DisplaySize;
-    // ImGui::SetNextWindowSize(viewportSize);
+    // Fill the entire window with the Audio Book Player UI
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImVec2 viewportSize = ImGui::GetIO().DisplaySize;
+    ImGui::SetNextWindowSize(viewportSize);
     // ImGui::Begin("Audio Book Player - Hoor Buch", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
     // gui_playback_buttons(music);
@@ -240,12 +240,13 @@ void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player, std
     // ImGui::Text("This is some useful text.");
     // ImGui::End(); // end of the audio book player window
 
-    if (ImGui::Begin("Audio Book Player", nullptr, ImGuiWindowFlags_NoCollapse))
+    if (ImGui::Begin("Audio Book Player", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
     {
-        // Display progress bar for the audiobook
-        ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
 
         gui_playback_buttons(music);
+
+        // Display progress bar for the audiobook
+        ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
 
         gui_choose_library_dialog(player);
 
