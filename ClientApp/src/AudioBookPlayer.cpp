@@ -32,8 +32,16 @@ void AudioBookPlayer::selectBook(int index)
     {
         currentBookIndex = index;
         currentBook = library[index];
+
+        // check that the last played file exists, if not set it to the first file
+        if (!std::filesystem::exists(currentBook.last_played_file))
+        {
+            std::cout << "Last played file doesn't exist. Setting it to the first file." << std::endl;
+            currentBook.last_played_file = currentBook.files[0];
+        }
+
         // Load a music to play
-        if (!music.openFromFile("D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3"))
+        if (!music.openFromFile(currentBook.path + "\\" + currentBook.last_played_file))
         {
             std::cerr << "Failed to load music" << std::endl;
             throw std::runtime_error("Failed to load music");
