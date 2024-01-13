@@ -112,3 +112,15 @@ void DisplayLibrary(const std::vector<Audiobook> &audiobooks, sf::Music &music)
     }
     ImGui::End();
 }
+
+void DisplayNavigationPanel()
+{
+    // Left side panel for navigation
+    ImGui::BeginChild("NavigationPanel", ImVec2(200, 0), true);
+    // Categories or playlists can be listed here
+    ImGui::Text("All Audiobooks");
+    ImGui::Text("Recently Played");
+    ImGui::Text("Favorites");
+    // ... other categories
+    ImGui::EndChild();
+}

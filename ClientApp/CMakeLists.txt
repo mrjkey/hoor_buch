@@ -92,6 +92,9 @@ if(WIN32)
     # You can also set the library directory if needed
     # set(BOOST_LIBRARYDIR C:/Boost/boost_1_84_0/stage/lib)
 
+    # set the win32_winnt to 0x0601
+    add_definitions(-D_WIN32_WINNT=0x0601)
+
     # Find Boost on your system
     if(POLICY CMP0074)
         cmake_policy(SET CMP0074 NEW)

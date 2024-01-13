@@ -12,3 +12,4 @@ void SetModernImGuiStyle();
 void SetDarkStyle();
 void DisplayAlbumArt(GLuint textureId);
 void DisplayLibrary(const std::vector<Audiobook> &audiobooks, sf::Music &music);
+void DisplayNavigationPanel();
