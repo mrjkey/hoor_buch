@@ -85,6 +85,13 @@ find_package(yaml-cpp CONFIG REQUIRED)
 target_link_libraries(ClientApp yaml-cpp::yaml-cpp)
 
 
+
+# Find and link taglib
+find_package(PkgConfig)
+pkg_check_modules(TAGLIB REQUIRED IMPORTED_TARGET taglib)
+target_link_libraries(ClientApp PkgConfig::TAGLIB)
+
+
 # Conditionally set the Boost root and library directories based on the OS
 if(WIN32)
     # Set the Boost root (path to the Boost installation).

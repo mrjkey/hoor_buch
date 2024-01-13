@@ -110,3 +110,5 @@ git clone https://github.com/Microsoft/vcpkg.git
 ./vcpkg install libsndfile
 
 ./vcpkg install portaudio
+
+..\vcpkg\vcpkg.exe install taglib

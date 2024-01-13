@@ -11,4 +11,5 @@ void CreateOrUpdateLibraryIndex(const std::string &libraryPath, const std::vecto
 std::vector<Audiobook> ReadLibraryIndex(const std::string &library_directory, const std::string &library_file_path);
 void CreateOrUpdateAudiobookInfo(const std::string &audiobookPath, const Audiobook &audiobook);
 Audiobook ReadAudiobookInfo(const std::string &audiobookPath);
-bool files_match(const std::string &audiobookPath, Audiobook &audiobook);
+bool files_changed(const std::string &audiobookPath, Audiobook &audiobook);
+float get_book_duration(const std::string &audiobookPath);

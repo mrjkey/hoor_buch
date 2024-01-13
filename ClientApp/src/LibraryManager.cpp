@@ -5,6 +5,9 @@
 #include <iostream>
 #include <filesystem>
 
+#include <taglib/tag.h>
+#include <taglib/fileref.h>
+
 #include "LibraryManager.h"
 
 // Function implementations
@@ -53,11 +56,40 @@ std::vector<Audiobook> ReadLibraryIndex(const std::string &library_directory, co
             CreateOrUpdateAudiobookInfo(audiobook_directory, {});
         }
 
-        // create the audiobook object from the audiobook_info.yaml file
-        Audiobook audiobook = ReadAudiobookInfo(audiobook_directory);
+        // try to read the audiobook_info.yaml file
+        Audiobook audiobook;
+        try
+        {
+            // create the audiobook object from the audiobook_info.yaml file
+            audiobook = ReadAudiobookInfo(audiobook_directory);
+        }
+        // if there is an error, create a new audiobook object
+        catch (const std::exception &e)
+        {
+            std::cout << "Error reading audiobook_info.yaml file. Creating a new one." << std::endl;
+            CreateOrUpdateAudiobookInfo(audiobook_directory, {});
+            audiobook = ReadAudiobookInfo(audiobook_directory);
+        }
 
         // update the audiobook_info.yaml file if the files in the directory don't match the files in the yaml file
-        if (!files_match(audiobook_directory, audiobook))
+        bool changed = files_changed(audiobook_directory, audiobook);
+
+        // if the title is empty, set it to the directory name
+        if (audiobook.title.empty())
+        {
+            audiobook.title = std::filesystem::path(audiobook_directory).filename().string();
+            changed = true;
+        }
+
+        float duration = get_book_duration(audiobook_directory);
+        if (audiobook.duration != duration)
+        {
+            audiobook.duration = duration;
+            changed = true;
+        }
+
+        // if any changes were made to the audiobook_info.yaml file, update it
+        if (changed)
         {
             CreateOrUpdateAudiobookInfo(audiobook_directory, audiobook);
         }
@@ -67,8 +99,40 @@ std::vector<Audiobook> ReadLibraryIndex(const std::string &library_directory, co
     return library;
 }
 
-bool files_match(const std::string &audiobookPath, Audiobook &audiobook)
+float get_book_duration(const std::string &audiobookPath)
 {
+    float duration = 0;
+    // list of file extensions to look for
+    std::vector<std::string> file_extensions = {".mp3", ".m4a", ".m4b", ".wav", ".ogg", ".flac"};
+
+    // get the list of files in the directory
+    for (const auto &entry : std::filesystem::directory_iterator(audiobookPath))
+    {
+        // check if the file is an audio file
+        for (const auto &extension : file_extensions)
+        {
+            if (entry.path().extension() == extension)
+            {
+                // read the file metadata
+                TagLib::FileRef f(entry.path().string().c_str());
+
+                // get the duration of the file from the metadata
+                int file_duration = f.audioProperties()->length();
+
+                // add the duration to the total duration
+                duration += file_duration;
+
+                // break out of the loop
+                break;
+            }
+        }
+    }
+    return duration;
+}
+
+bool files_changed(const std::string &audiobookPath, Audiobook &audiobook)
+{
+    bool changed = false;
     // check the files in the directory and add them to the yaml file
     // any audio files in the directory that aren't in the yaml file should be added
     // any audio files in the yaml file that aren't in the directory should be removed
@@ -93,12 +157,24 @@ bool files_match(const std::string &audiobookPath, Audiobook &audiobook)
     if (files != audiobook.files)
     {
         audiobook.files = files;
-        return false;
+        changed = true;
     }
-    else
+
+    // check if the last played file is in the list of files
+    // if not set the last played file to empty and reset the last played position and progress
+    if (std::find(files.begin(), files.end(), audiobook.last_played_file) == files.end())
     {
-        return true;
+        // if the last played was already empty, don't change anything
+        if (!audiobook.last_played_file.empty())
+        {
+            audiobook.last_played_file = "";
+            audiobook.last_played_position = 0;
+            audiobook.progress = 0;
+            changed = true;
+        }
     }
+
+    return changed;
 }
 
 void CreateOrUpdateAudiobookInfo(const std::string &audiobookPath, const Audiobook &audiobook)
@@ -106,6 +182,7 @@ void CreateOrUpdateAudiobookInfo(const std::string &audiobookPath, const Audiobo
     YAML::Emitter out;
     out << YAML::BeginMap;
     out << YAML::Key << "title" << YAML::Value << audiobook.title;
+    out << YAML::Key << "duration" << YAML::Value << audiobook.duration;
     out << YAML::Key << "progress" << YAML::Value << audiobook.progress;
     out << YAML::Key << "files" << YAML::Value << YAML::Flow << audiobook.files;
     out << YAML::Key << "last_played_file" << YAML::Value << audiobook.last_played_file;
@@ -121,6 +198,16 @@ Audiobook ReadAudiobookInfo(const std::string &audiobookPath)
     Audiobook audiobook;
     YAML::Node config = YAML::LoadFile(audiobookPath + "/audiobook_info.yaml");
     audiobook.title = config["title"].as<std::string>();
+    // backwards compatibility
+    // if duration is not in the yaml file, set it to 0
+    if (!config["duration"])
+    {
+        audiobook.duration = 0;
+    }
+    else
+    {
+        audiobook.duration = config["duration"].as<float>();
+    }
     audiobook.progress = config["progress"].as<float>();
     audiobook.last_played_file = config["last_played_file"].as<std::string>();
     audiobook.last_played_position = config["last_played_position"].as<int>();

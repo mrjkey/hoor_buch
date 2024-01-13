@@ -96,6 +96,7 @@ void DisplayLibrary(AudioBookPlayer *player, sf::Music &music)
         // Reload the library
     }
 
+    ImGui::Separator();
     // Display each audiobook in the library, and the progress of each.
     // The library should have a scroll bar if it is too large to fit in the window.
     // The audiobooks should be selectable so that the user can choose which one to play.
@@ -106,16 +107,22 @@ void DisplayLibrary(AudioBookPlayer *player, sf::Music &music)
         ImGui::Text(player->library[i].title.c_str());
 
         // Display the audiobook progress
-        ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
+        ImGui::ProgressBar(player->library[i].progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
 
         // Display the audiobook author
-        ImGui::Text(player->library[i].author.c_str());
+        // ImGui::Text(player->library[i].author.c_str());
 
         // Display the audiobook duration
         ImGui::Text(std::to_string(player->library[i].duration).c_str());
 
         // Display the audiobook cover art
         // DisplayAlbumArt(audiobooks[i].textureId);
+
+        // add a space between each audiobook
+        ImGui::Spacing();
+
+        // add a separator between each audiobook
+        ImGui::Separator();
 
         // Selecting an audiobook should load it into the player
         if (ImGui::IsItemClicked())

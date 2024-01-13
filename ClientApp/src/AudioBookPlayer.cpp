@@ -21,15 +21,6 @@ void AudioBookPlayer::loadLibrary(const std::string &configFilePath)
 
     // read the library file
     library = ReadLibraryIndex(library_directory, library_file_path);
-
-    // for (const auto &entry : std::filesystem::directory_iterator(directoryPath))
-    // {
-    //     sf::Music book;
-    //     if (book.openFromFile(entry.path().string()))
-    //     {
-    //         library.push_back(std::move(book));
-    //     }
-    // }
 }
 
 void AudioBookPlayer::selectBook(int index)
