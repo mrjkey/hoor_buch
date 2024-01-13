@@ -24,21 +24,8 @@
 using boost::asio::ip::tcp;
 namespace asio = boost::asio;
 
-void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *player, std::vector<Audiobook> *audiobooks)
+void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *player)
 {
-
-    std::string libraryPath = "D:\\Torrents\\Books\\library.yaml";
-    std::string audiobookDirectory = "D:\\Torrents\\Books\\The Rook";
-
-    // Read and create/update library index
-    *audiobooks = ReadLibraryIndex(libraryPath);
-    // ... modify audiobooks as needed
-    CreateOrUpdateLibraryIndex(libraryPath, *audiobooks);
-    // Read and create/update individual audiobook info
-    Audiobook audiobook = ReadAudiobookInfo(audiobookDirectory);
-    // ... modify audiobook as needed
-    CreateOrUpdateAudiobookInfo(audiobookDirectory, audiobook);
-
     std::cout << "Starting Client Application" << std::endl;
 
     // initialize glfw
@@ -83,9 +70,9 @@ void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *play
 
     // check if a yaml file exists for the libarary
     // if not, create one
-    if (std::filesystem::exists("library.yaml"))
+    if (std::filesystem::exists("config.yaml"))
     {
-        YAML::Node config = YAML::LoadFile("library.yaml");
+        YAML::Node config = YAML::LoadFile("config.yaml");
 
         if (!config["audiobooks_directory"])
         {
@@ -93,7 +80,7 @@ void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *play
             // Update the audiobooks_directory value
 
             config["audiobooks_directory"] = "C:\\Users";
-            std::ofstream fout("library.yaml");
+            std::ofstream fout("config.yaml");
             fout << config;
             fout.close();
         }
@@ -103,16 +90,14 @@ void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *play
         // create a yaml file
         YAML::Node config;
         config["audiobooks_directory"] = "D:\\Torrents\\Books";
-        std::ofstream fout("library.yaml");
+        std::ofstream fout("config.yaml");
         fout << config;
         fout.close();
     }
 
-    player->loadLibrary("library.yaml");
+    player->loadLibrary("config.yaml");
 
-    // return std::make_tuple(window, music, player, audiobooks);
-    // return {window, music, player, audiobooks};
-    // return std::make_tuple<GLFWwindow *, sf::Music, AudioBookPlayer, std::vector<Audiobook>>(window, music, player, audiobooks);
+    // std::string audiobookDirectory = "D:\\Torrents\\Books\\The Rook";
 }
 
 void gui_playback_buttons(sf::Music *music)
@@ -150,13 +135,13 @@ void gui_choose_library_dialog(AudioBookPlayer *player)
     {
         // Here we set up the file dialog before opening the popup
         YAML::Node config;
-        if (std::filesystem::exists("library.yaml"))
+        if (std::filesystem::exists("config.yaml"))
         {
-            config = YAML::LoadFile("library.yaml");
+            config = YAML::LoadFile("config.yaml");
         }
         else
         {
-            std::cerr << "library.yaml not found, defaulting to current directory." << std::endl;
+            std::cerr << "config.yaml not found, defaulting to current directory." << std::endl;
             config["audiobooks_directory"] = ".";
         }
 
@@ -195,7 +180,7 @@ void gui_choose_library_dialog(AudioBookPlayer *player)
             std::string absolutePathString = absPath.string();
 
             // Load the YAML file
-            YAML::Node config = YAML::LoadFile("library.yaml");
+            YAML::Node config = YAML::LoadFile("config.yaml");
 
             std::cout << absolutePathString << std::endl;
             // Update the audiobooks_directory value
@@ -203,10 +188,10 @@ void gui_choose_library_dialog(AudioBookPlayer *player)
             config["audiobooks_directory"] = absolutePathString;
 
             // Write the file back
-            std::ofstream fout("library.yaml");
+            std::ofstream fout("config.yaml");
             fout << config;
             fout.close();
-            player->loadLibrary("library.yaml");
+            player->loadLibrary("config.yaml");
             // action
 
             // close
@@ -225,20 +210,12 @@ void gui_new_frame()
     ImGui::NewFrame();
 }
 
-void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player, std::vector<Audiobook> *audiobooks)
+void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player)
 {
     // Fill the entire window with the Audio Book Player UI
     ImGui::SetNextWindowPos(ImVec2(0, 0));
     ImVec2 viewportSize = ImGui::GetIO().DisplaySize;
     ImGui::SetNextWindowSize(viewportSize);
-    // ImGui::Begin("Audio Book Player - Hoor Buch", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
-
-    // gui_playback_buttons(music);
-
-    // gui_choose_library_dialog(player);
-
-    // ImGui::Text("This is some useful text.");
-    // ImGui::End(); // end of the audio book player window
 
     if (ImGui::Begin("Audio Book Player", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
     {
@@ -251,7 +228,7 @@ void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player, std
         gui_choose_library_dialog(player);
 
         // Display the library
-        DisplayLibrary(*audiobooks, *music);
+        DisplayLibrary(player, *music);
 
         // Display the book progress
         // DisplayBookProgress();
@@ -271,7 +248,7 @@ void gui_render_frame(GLFWwindow *window)
     glfwSwapBuffers(window);
 }
 
-void main_loop(GLFWwindow *window, sf::Music *music, AudioBookPlayer *player, std::vector<Audiobook> *audiobooks)
+void main_loop(GLFWwindow *window, sf::Music *music, AudioBookPlayer *player)
 {
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -283,7 +260,7 @@ void main_loop(GLFWwindow *window, sf::Music *music, AudioBookPlayer *player, st
         gui_new_frame();
 
         // Fill the entire window with the Audio Book Player UI
-        gui_audio_book_player_window(music, player, audiobooks);
+        gui_audio_book_player_window(music, player);
 
         // Rendering
         gui_render_frame(window);
@@ -307,10 +284,10 @@ int main(int argc, char **argv)
     sf::Music music;
     AudioBookPlayer player;
     std::vector<Audiobook> audiobooks;
-    setup_for_main(&window, &music, &player, &audiobooks);
+    setup_for_main(&window, &music, &player);
 
     // Main loop
-    main_loop(window, &music, &player, &audiobooks);
+    main_loop(window, &music, &player);
 
     // Cleanup
     shutdown(window);

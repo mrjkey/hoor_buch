@@ -74,45 +74,59 @@ void DisplayAlbumArt(GLuint textureId)
 }
 
 // Display function for the library
-void DisplayLibrary(const std::vector<Audiobook> &audiobooks, sf::Music &music)
+void DisplayLibrary(AudioBookPlayer *player, sf::Music &music)
 {
     // nest the library as a child of another component
     ImGui::BeginChild("Library", ImVec2(0, 0), true);
 
-    // Display the library as a tree
-    for (const auto &book : audiobooks)
+    // button to add a new audiobook
+    if (ImGui::Button("Add Audiobook"))
     {
-        if (ImGui::TreeNode(book.title.c_str()))
+        // Open a file dialog to select a new audiobook (directory)
+        // ...
+
+        // Read the audiobook metadata
+
+        // Create the audiobook yaml file describing the audiobook
+
+        // Add the audiobook to the library
+
+        // Save the library
+
+        // Reload the library
+    }
+
+    // Display each audiobook in the library, and the progress of each.
+    // The library should have a scroll bar if it is too large to fit in the window.
+    // The audiobooks should be selectable so that the user can choose which one to play.
+    // Selecting an audio book should load it into the player.
+    for (int i = 0; i < player->library.size(); i++)
+    {
+        // Display the audiobook title
+        ImGui::Text(player->library[i].title.c_str());
+
+        // Display the audiobook progress
+        ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
+
+        // Display the audiobook author
+        ImGui::Text(player->library[i].author.c_str());
+
+        // Display the audiobook duration
+        ImGui::Text(std::to_string(player->library[i].duration).c_str());
+
+        // Display the audiobook cover art
+        // DisplayAlbumArt(audiobooks[i].textureId);
+
+        // Selecting an audiobook should load it into the player
+        if (ImGui::IsItemClicked())
         {
-            // Display progress bar for the audiobook
-            ImGui::ProgressBar(book.progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
-
-            // Display info and controls for each audiobook here
-            // ...
-
-            ImGui::TreePop();
+            // player->selectBook(i);
+            // music.openFromFile(audiobooks[i].path);
+            // music.play();
         }
     }
 
     ImGui::EndChild();
-
-    // if (ImGui::Begin("Library", nullptr, ImGuiWindowFlags_NoCollapse))
-    // {
-    //     for (const auto &book : audiobooks)
-    //     {
-    //         if (ImGui::TreeNode(book.title.c_str()))
-    //         {
-    //             // Display progress bar for the audiobook
-    //             ImGui::ProgressBar(book.progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
-
-    //             // Display info and controls for each audiobook here
-    //             // ...
-
-    //             ImGui::TreePop();
-    //         }
-    //     }
-    // }
-    // ImGui::End();
 }
 
 void DisplayNavigationPanel()

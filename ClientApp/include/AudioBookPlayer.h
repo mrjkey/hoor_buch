@@ -17,7 +17,9 @@ public:
     void loadLibrary(const std::string &configFilePath);
     void selectBook(int index);
 
-private:
-    // std::vector<sf::Music> library;
+    // private:
+    std::vector<Audiobook> library;
+    std::string library_directory;
+    std::string library_file_path;
     int currentBook;
 };
