@@ -112,7 +112,7 @@ void AddBookFunctionality(AudioBookPlayer *player)
 
             add_new_audiobook(&player->library, abs_book_path);
 
-            // remove_duplicate_audiobooks(&player->library);
+            remove_duplicate_audiobooks(&player->library);
 
             // Save the library
             CreateOrUpdateLibraryIndex(player->library_file_path, player->library);
@@ -139,8 +139,18 @@ void DisplayLibrary(AudioBookPlayer *player)
     // Selecting an audio book should load it into the player.
     for (int i = 0; i < player->library.size(); i++)
     {
+        // begin a child component for each audiobook
+        // ImGui::BeginChild(player->library[i].title.c_str(), ImVec2(0, 0), true);
+        // Create a selectable block for each audiobook
+        // The selectable ID needs to be unique for each book, hence using the book index
+        std::string selectableId = player->library[i].title.c_str();
+        if (ImGui::Selectable(selectableId.c_str(), player->currentBookIndex == i, ImGuiSelectableFlags_SpanAllColumns))
+        {
+            player->selectBook(i); // This function should set the selectedBookIndex in your player
+        }
+
         // Display the audiobook title
-        ImGui::Text(player->library[i].title.c_str());
+        // ImGui::Text(player->library[i].title.c_str());
 
         // Display the audiobook progress
         ImGui::ProgressBar(player->library[i].progress, ImVec2(-FLT_MIN, 0.0f), "Progress");
@@ -169,6 +179,9 @@ void DisplayLibrary(AudioBookPlayer *player)
             // music.openFromFile(audiobooks[i].path);
             // music.play();
         }
+
+        // end the child component for each audiobook
+        // ImGui::EndChild();
     }
 
     ImGui::EndChild();

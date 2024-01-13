@@ -106,18 +106,20 @@ void add_new_audiobook(std::vector<Audiobook> *library, const std::string audiob
 // remove duplicate audiobooks from the library
 void remove_duplicate_audiobooks(std::vector<Audiobook> *library)
 {
-    // loop through the library
     for (auto it = library->begin(); it != library->end(); ++it)
     {
-        // loop through the library again
-        for (auto it2 = library->begin(); it2 != library->end(); ++it2)
+        auto it2 = it;
+        ++it2; // Start from the next element after 'it'
+        while (it2 != library->end())
         {
-            // if the audiobook paths are the same, remove the audiobook from the library
-            if (it->path == it2->path && it != it2)
+            if (it->path == it2->path)
             {
                 std::cout << "Removing duplicate audiobook: " << it->path << std::endl;
-                library->erase(it);
-                break;
+                it2 = library->erase(it2); // Erase and update it2 to the next valid iterator
+            }
+            else
+            {
+                ++it2; // Only increment it2 if no erasure happened
             }
         }
     }

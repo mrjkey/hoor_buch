@@ -30,6 +30,7 @@ void AudioBookPlayer::selectBook(int index)
     // check that the index is valid
     if (index >= 0 && index < library.size())
     {
+        currentBookIndex = index;
         currentBook = library[index];
         // Load a music to play
         if (!music.openFromFile("D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3"))

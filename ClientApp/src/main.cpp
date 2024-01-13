@@ -49,15 +49,13 @@ void setup_for_main(AudioBookPlayer *player)
     {
         // create a yaml file
         YAML::Node config;
-        config["audiobooks_directory"] = "D:\\Torrents\\Books";
+        config["audiobooks_directory"] = "C:\\Users";
         std::ofstream fout("config.yaml");
         fout << config;
         fout.close();
     }
 
     player->loadLibrary("config.yaml");
-
-    // std::string audiobookDirectory = "D:\\Torrents\\Books\\The Rook";
 }
 
 void gui_choose_library_dialog(AudioBookPlayer *player)
@@ -217,6 +215,7 @@ int main(int argc, char **argv)
 
     gui_setup(&window);
     setup_for_main(&player);
+    remove_duplicate_audiobooks(&player.library);
 
     player.selectBook(0);
 

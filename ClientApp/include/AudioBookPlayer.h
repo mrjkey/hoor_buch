@@ -24,4 +24,5 @@ public:
     std::string library_file_path;
     sf::Music music;
     Audiobook currentBook;
+    int currentBookIndex;
 };
