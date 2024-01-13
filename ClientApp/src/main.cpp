@@ -24,49 +24,9 @@
 using boost::asio::ip::tcp;
 namespace asio = boost::asio;
 
-void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *player)
+void setup_for_main(AudioBookPlayer *player)
 {
     std::cout << "Starting Client Application" << std::endl;
-
-    // initialize glfw
-    if (!glfwInit())
-    {
-        std::cerr << "Failed to initialize GLFW" << std::endl;
-        throw std::runtime_error("Failed to initialize GLFW");
-    }
-
-    // Create a windowed mode window and its OpenGL context
-    *window = glfwCreateWindow(900, 600, "Audio Books Baby!", NULL, NULL);
-    if (!*window)
-    {
-        std::cerr << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        throw std::runtime_error("Failed to create GLFW window");
-    }
-
-    // Make the window's context current
-    glfwMakeContextCurrent(*window);
-
-    // Initialize ImGui and its bindings for OpenGL3 and GLFW
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGui_ImplGlfw_InitForOpenGL(*window, true);
-    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your OpenGL version if needed
-
-    // After creating the ImGui context, apply the new style
-    SetModernImGuiStyle();
-
-    // GLuint albumArtTexture = LoadTexture("path_to_album_art.png"); // Implement this function to load texture
-
-    // DisplayNavigationPanel();
-    // DisplayAlbumArt(albumArtTexture);
-
-    // Load a music to play
-    if (!music->openFromFile("D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3"))
-    {
-        std::cerr << "Failed to load music" << std::endl;
-        throw std::runtime_error("Failed to load music");
-    }
 
     // check if a yaml file exists for the libarary
     // if not, create one
@@ -98,34 +58,6 @@ void setup_for_main(GLFWwindow **window, sf::Music *music, AudioBookPlayer *play
     player->loadLibrary("config.yaml");
 
     // std::string audiobookDirectory = "D:\\Torrents\\Books\\The Rook";
-}
-
-void gui_playback_buttons(sf::Music *music)
-{
-    if (ImGui::Button("Play"))
-    {
-        std::cout << "Play" << std::endl;
-        // Trigger audio playback
-        music->play();
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Pause"))
-    {
-        std::cout << "Pause" << std::endl;
-        // Pause the audio
-        music->pause();
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Stop"))
-    {
-        std::cout << "Stop" << std::endl;
-        // Stop the audio because
-        music->stop();
-    }
 }
 
 void gui_choose_library_dialog(AudioBookPlayer *player)
@@ -220,7 +152,7 @@ void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player)
     if (ImGui::Begin("Audio Book Player", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
     {
 
-        gui_playback_buttons(music);
+        gui_playback_buttons(&player->music);
 
         // Display progress bar for the audiobook
         ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
@@ -228,7 +160,7 @@ void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player)
         gui_choose_library_dialog(player);
 
         // Display the library
-        DisplayLibrary(player, *music);
+        DisplayLibrary(player);
 
         // Display the book progress
         // DisplayBookProgress();
@@ -248,7 +180,7 @@ void gui_render_frame(GLFWwindow *window)
     glfwSwapBuffers(window);
 }
 
-void main_loop(GLFWwindow *window, sf::Music *music, AudioBookPlayer *player)
+void main_loop(GLFWwindow *window, AudioBookPlayer *player)
 {
     // Main loop
     while (!glfwWindowShouldClose(window))
@@ -260,7 +192,7 @@ void main_loop(GLFWwindow *window, sf::Music *music, AudioBookPlayer *player)
         gui_new_frame();
 
         // Fill the entire window with the Audio Book Player UI
-        gui_audio_book_player_window(music, player);
+        gui_audio_book_player_window(&player->music, player);
 
         // Rendering
         gui_render_frame(window);
@@ -281,13 +213,15 @@ void shutdown(GLFWwindow *window)
 int main(int argc, char **argv)
 {
     GLFWwindow *window;
-    sf::Music music;
     AudioBookPlayer player;
-    std::vector<Audiobook> audiobooks;
-    setup_for_main(&window, &music, &player);
+
+    gui_setup(&window);
+    setup_for_main(&player);
+
+    player.selectBook(0);
 
     // Main loop
-    main_loop(window, &music, &player);
+    main_loop(window, &player);
 
     // Cleanup
     shutdown(window);

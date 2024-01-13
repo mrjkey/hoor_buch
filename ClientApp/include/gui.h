@@ -13,5 +13,7 @@
 void SetModernImGuiStyle();
 void SetDarkStyle();
 void DisplayAlbumArt(GLuint textureId);
-void DisplayLibrary(AudioBookPlayer *player, sf::Music &music);
+void DisplayLibrary(AudioBookPlayer *player);
 void DisplayNavigationPanel();
+void gui_playback_buttons(sf::Music *music);
+void gui_setup(GLFWwindow **window);

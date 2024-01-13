@@ -2,6 +2,12 @@
 
 #include "gui.h"
 
+#include "ImGuiFileDialog.h"
+#include "LibraryManager.h"
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
 // Set ImGui style to a more sleek/modern appearance
 void SetModernImGuiStyle()
 {
@@ -73,28 +79,58 @@ void DisplayAlbumArt(GLuint textureId)
     ImGui::Image((void *)(intptr_t)textureId, ImVec2(100, 100));
 }
 
+void AddBookDialog(AudioBookPlayer *player)
+{
+    // Open a file dialog to select a new audiobook (directory)
+    IGFD::FileDialogConfig fileDialogConfig;
+    fileDialogConfig.path = player->library_directory;
+    ImGuiFileDialog::Instance()->OpenDialog("add_book", "Choose Directory", nullptr, fileDialogConfig);
+}
+
+void AddBookFunctionality(AudioBookPlayer *player)
+{
+    // Add a new audiobook to the library
+    if (ImGui::Button("Add Audiobook"))
+    {
+        AddBookDialog(player);
+    }
+    ImVec2 popupSize = ImVec2(600, 400);
+    ImGui::SetNextWindowSize(popupSize, ImGuiCond_Always);
+    if (ImGuiFileDialog::Instance()->Display("add_book"))
+    {
+
+        // action if OK
+        if (ImGuiFileDialog::Instance()->IsOk())
+        {
+            std::string directoryPath = ImGuiFileDialog::Instance()->GetCurrentPath();
+
+            // Convert to an absolute path
+            std::filesystem::path absPath = std::filesystem::absolute(directoryPath);
+
+            // If you need it as a string
+            std::string abs_book_path = absPath.string();
+
+            add_new_audiobook(&player->library, abs_book_path);
+
+            // remove_duplicate_audiobooks(&player->library);
+
+            // Save the library
+            CreateOrUpdateLibraryIndex(player->library_file_path, player->library);
+
+            // close
+            ImGuiFileDialog::Instance()->Close();
+        }
+    }
+}
+
 // Display function for the library
-void DisplayLibrary(AudioBookPlayer *player, sf::Music &music)
+void DisplayLibrary(AudioBookPlayer *player)
 {
     // nest the library as a child of another component
     ImGui::BeginChild("Library", ImVec2(0, 0), true);
 
     // button to add a new audiobook
-    if (ImGui::Button("Add Audiobook"))
-    {
-        // Open a file dialog to select a new audiobook (directory)
-        // ...
-
-        // Read the audiobook metadata
-
-        // Create the audiobook yaml file describing the audiobook
-
-        // Add the audiobook to the library
-
-        // Save the library
-
-        // Reload the library
-    }
+    AddBookFunctionality(player);
 
     ImGui::Separator();
     // Display each audiobook in the library, and the progress of each.
@@ -127,7 +163,9 @@ void DisplayLibrary(AudioBookPlayer *player, sf::Music &music)
         // Selecting an audiobook should load it into the player
         if (ImGui::IsItemClicked())
         {
-            // player->selectBook(i);
+            // get the book that was clicked
+            player->selectBook(i);
+
             // music.openFromFile(audiobooks[i].path);
             // music.play();
         }
@@ -146,4 +184,69 @@ void DisplayNavigationPanel()
     ImGui::Text("Favorites");
     // ... other categories
     ImGui::EndChild();
+}
+
+void gui_playback_buttons(sf::Music *music)
+{
+    if (ImGui::Button("Play"))
+    {
+        std::cout << "Play" << std::endl;
+        // Trigger audio playback
+        music->play();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Pause"))
+    {
+        std::cout << "Pause" << std::endl;
+        // Pause the audio
+        music->pause();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Stop"))
+    {
+        std::cout << "Stop" << std::endl;
+        // Stop the audio because
+        music->stop();
+    }
+}
+
+void gui_setup(GLFWwindow **window)
+{
+    // initialize glfw
+    if (!glfwInit())
+    {
+        std::cerr << "Failed to initialize GLFW" << std::endl;
+        throw std::runtime_error("Failed to initialize GLFW");
+    }
+
+    // Create a windowed mode window and its OpenGL context
+    *window = glfwCreateWindow(900, 600, "Audio Books Baby!", NULL, NULL);
+    if (!*window)
+    {
+        std::cerr << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        throw std::runtime_error("Failed to create GLFW window");
+    }
+
+    // Make the window's context current
+    glfwMakeContextCurrent(*window);
+
+    // Initialize ImGui and its bindings for OpenGL3 and GLFW
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(*window, true);
+    ImGui_ImplOpenGL3_Init("#version 130"); // Replace with your OpenGL version if needed
+
+    // After creating the ImGui context, apply the new style
+    // SetModernImGuiStyle();
+    SetDarkStyle();
+
+    // GLuint albumArtTexture = LoadTexture("path_to_album_art.png"); // Implement this function to load texture
+
+    // DisplayNavigationPanel();
+    // DisplayAlbumArt(albumArtTexture);
 }

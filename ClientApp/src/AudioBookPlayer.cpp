@@ -20,13 +20,24 @@ void AudioBookPlayer::loadLibrary(const std::string &configFilePath)
     }
 
     // read the library file
-    library = ReadLibraryIndex(library_directory, library_file_path);
+    library = ReadLibraryIndex(library_file_path);
 }
 
 void AudioBookPlayer::selectBook(int index)
 {
-    // if (index >= 0 && index < library.size())
-    // {
-    //     currentBook = index;
-    // }
+    std::cout << "Selecting book " << index << std::endl;
+
+    // check that the index is valid
+    if (index >= 0 && index < library.size())
+    {
+        currentBook = library[index];
+        // Load a music to play
+        if (!music.openFromFile("D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3"))
+        {
+            std::cerr << "Failed to load music" << std::endl;
+            throw std::runtime_error("Failed to load music");
+        }
+    }
 }
+
+// void AudioBookPlayer::addBookD

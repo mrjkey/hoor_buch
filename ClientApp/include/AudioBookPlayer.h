@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <vector>
 #include <iostream>
+#include <SFML/Audio.hpp>
 
 #include "datatypes.h"
 
@@ -21,5 +22,6 @@ public:
     std::vector<Audiobook> library;
     std::string library_directory;
     std::string library_file_path;
-    int currentBook;
+    sf::Music music;
+    Audiobook currentBook;
 };

@@ -30,15 +30,13 @@ void CreateOrUpdateLibraryIndex(const std::string &libraryPath, const std::vecto
     fout << out.c_str();
 }
 
-std::vector<Audiobook> ReadLibraryIndex(const std::string &library_directory, const std::string &library_file_path)
+std::vector<Audiobook> ReadLibraryIndex(const std::string &library_file_path)
 {
     std::vector<Audiobook> library;
     YAML::Node config = YAML::LoadFile(library_file_path);
     for (const auto &book : config["audiobooks"])
     {
         std::string audiobook_directory = book["path"].as<std::string>();
-        // combine path to library path + path
-        audiobook_directory = library_directory + "\\" + audiobook_directory;
         // convert combined path to absolute path, and convert it to a string
         audiobook_directory = std::filesystem::absolute(audiobook_directory).string();
 
@@ -56,47 +54,73 @@ std::vector<Audiobook> ReadLibraryIndex(const std::string &library_directory, co
             CreateOrUpdateAudiobookInfo(audiobook_directory, {});
         }
 
-        // try to read the audiobook_info.yaml file
-        Audiobook audiobook;
-        try
-        {
-            // create the audiobook object from the audiobook_info.yaml file
-            audiobook = ReadAudiobookInfo(audiobook_directory);
-        }
-        // if there is an error, create a new audiobook object
-        catch (const std::exception &e)
-        {
-            std::cout << "Error reading audiobook_info.yaml file. Creating a new one." << std::endl;
-            CreateOrUpdateAudiobookInfo(audiobook_directory, {});
-            audiobook = ReadAudiobookInfo(audiobook_directory);
-        }
-
-        // update the audiobook_info.yaml file if the files in the directory don't match the files in the yaml file
-        bool changed = files_changed(audiobook_directory, audiobook);
-
-        // if the title is empty, set it to the directory name
-        if (audiobook.title.empty())
-        {
-            audiobook.title = std::filesystem::path(audiobook_directory).filename().string();
-            changed = true;
-        }
-
-        float duration = get_book_duration(audiobook_directory);
-        if (audiobook.duration != duration)
-        {
-            audiobook.duration = duration;
-            changed = true;
-        }
-
-        // if any changes were made to the audiobook_info.yaml file, update it
-        if (changed)
-        {
-            CreateOrUpdateAudiobookInfo(audiobook_directory, audiobook);
-        }
-
-        library.push_back(audiobook);
+        add_new_audiobook(&library, audiobook_directory);
     }
     return library;
+}
+
+// add a new audiobook to the library
+void add_new_audiobook(std::vector<Audiobook> *library, const std::string audiobook_directory)
+{
+    // try to read the audiobook_info.yaml file
+    Audiobook audiobook;
+    try
+    {
+        // create the audiobook object from the audiobook_info.yaml file
+        audiobook = ReadAudiobookInfo(audiobook_directory);
+    }
+    // if there is an error, create a new audiobook object
+    catch (const std::exception &e)
+    {
+        std::cout << "Error reading audiobook_info.yaml file. Creating a new one." << e.what() << std::endl;
+        CreateOrUpdateAudiobookInfo(audiobook_directory, {});
+        audiobook = ReadAudiobookInfo(audiobook_directory);
+    }
+
+    // update the audiobook_info.yaml file if the files in the directory don't match the files in the yaml file
+    bool changed = files_changed(audiobook_directory, audiobook);
+
+    // if the title is empty, set it to the directory name
+    if (audiobook.title.empty())
+    {
+        audiobook.title = std::filesystem::path(audiobook_directory).filename().string();
+        changed = true;
+    }
+
+    float duration = get_book_duration(audiobook_directory);
+    if (audiobook.duration != duration)
+    {
+        audiobook.duration = duration;
+        changed = true;
+    }
+
+    // if any changes were made to the audiobook_info.yaml file, update it
+    if (changed)
+    {
+        CreateOrUpdateAudiobookInfo(audiobook_directory, audiobook);
+    }
+
+    library->push_back(audiobook);
+}
+
+// remove duplicate audiobooks from the library
+void remove_duplicate_audiobooks(std::vector<Audiobook> *library)
+{
+    // loop through the library
+    for (auto it = library->begin(); it != library->end(); ++it)
+    {
+        // loop through the library again
+        for (auto it2 = library->begin(); it2 != library->end(); ++it2)
+        {
+            // if the audiobook paths are the same, remove the audiobook from the library
+            if (it->path == it2->path && it != it2)
+            {
+                std::cout << "Removing duplicate audiobook: " << it->path << std::endl;
+                library->erase(it);
+                break;
+            }
+        }
+    }
 }
 
 float get_book_duration(const std::string &audiobookPath)
@@ -197,6 +221,7 @@ Audiobook ReadAudiobookInfo(const std::string &audiobookPath)
 {
     Audiobook audiobook;
     YAML::Node config = YAML::LoadFile(audiobookPath + "/audiobook_info.yaml");
+    audiobook.path = audiobookPath;
     audiobook.title = config["title"].as<std::string>();
     // backwards compatibility
     // if duration is not in the yaml file, set it to 0
