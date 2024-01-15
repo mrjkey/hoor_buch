@@ -112,3 +112,19 @@ git clone https://github.com/Microsoft/vcpkg.git
 ./vcpkg install portaudio
 
 ..\vcpkg\vcpkg.exe install taglib
+
+# Linux setup commands
+```
+<from ClientApp dir>
+git clone --recursive https://github.com/ocornut/imgui.git -b docking
+git clone https://github.com/Microsoft/vcpkg.git
+mkdir build
+cd build
+../vcpkg/bootstrap-vcpkg.sh
+../vcpkg/vcpkg install glfw3
+< may need to install system packages if the install fails, it will tell you what you need>
+../vcpkg/vcpkg install gtest
+../vcpkg/vcpkg install libsndfile
+../vcpkg/vcpkg install taglib
+../vcpkg/vcpkg install portaudio
+```
