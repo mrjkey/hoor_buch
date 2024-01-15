@@ -180,6 +180,62 @@ void DisplayLibrary(AudioBookPlayer *player)
             // music.play();
         }
 
+        // // Add a TreeNode for collapsible file listing
+        // if (ImGui::TreeNode(player->library[i].title.c_str()))
+        // {
+        //     // Get the list of files for the current book
+        //     std::vector<std::string> files = player->library[i].files;
+
+        //     for (const auto &file : files)
+        //     {
+        //         ImGui::Text("%s", file.c_str());
+        //     }
+
+        //     ImGui::TreePop();
+        // }
+
+        // Add a TreeNode for collapsible file listing
+        if (ImGui::TreeNode(player->library[i].title.c_str()))
+        {
+            std::vector<std::string> &files = player->library[i].files; // Notice we use a reference here
+
+            for (int fileIndex = 0; fileIndex < files.size(); ++fileIndex)
+            {
+                ImGui::PushID(fileIndex);
+                ImGui::Text("%s", files[fileIndex].c_str());
+
+                // Up button - only show if not the first item
+                if (fileIndex > 0)
+                {
+                    ImGui::SameLine();
+                    if (ImGui::Button("Up"))
+                    {
+                        std::swap(files[fileIndex], files[fileIndex - 1]);
+                        update_audiobook(&player->library, player->library[i]);
+                        CreateOrUpdateAudiobookInfo(player->library[i].path, player->library[i]);
+                        // player->updateBookFiles(i, files); // You will need to implement this function
+                    }
+                }
+
+                // Down button - only show if not the last item
+                if (fileIndex < files.size() - 1)
+                {
+                    ImGui::SameLine();
+                    if (ImGui::Button("Down"))
+                    {
+                        std::swap(files[fileIndex], files[fileIndex + 1]);
+                        update_audiobook(&player->library, player->library[i]);
+                        CreateOrUpdateAudiobookInfo(player->library[i].path, player->library[i]);
+                        // player->updateBookFiles(i, files); // You will need to implement this function
+                    }
+                }
+
+                ImGui::PopID();
+            }
+
+            ImGui::TreePop();
+        }
+
         // end the child component for each audiobook
         // ImGui::EndChild();
     }

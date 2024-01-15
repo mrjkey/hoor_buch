@@ -199,7 +199,7 @@ void execute_periodic_functions(AudioBookPlayer *player)
         if (elapsedTime_object >= updateInterval_object)
         {
             // Update last played position
-            player->currentBook.last_played_position = player->music.getPlayingOffset().asSeconds();
+            player->currentBook->last_played_position = player->music.getPlayingOffset().asSeconds();
 
             // Reset elapsed time
             elapsedTime_object = 0.0f;
@@ -207,7 +207,7 @@ void execute_periodic_functions(AudioBookPlayer *player)
         if (elapsedTime_file >= updateInterval_file)
         {
             // Update the audiobook info file
-            CreateOrUpdateAudiobookInfo(player->currentBook.path, player->currentBook);
+            CreateOrUpdateAudiobookInfo(player->currentBook->path, *player->currentBook);
 
             // Reset elapsed time
             elapsedTime_file = 0.0f;

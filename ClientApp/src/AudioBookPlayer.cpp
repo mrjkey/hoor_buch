@@ -33,8 +33,8 @@ void AudioBookPlayer::selectBook(int index)
     {
         std::cout << "Backing up book before switching" << std::endl;
         // update book in library
-        update_audiobook(&library, currentBook);
-        CreateOrUpdateAudiobookInfo(currentBook.path, currentBook);
+        // update_audiobook(&library, *currentBook);
+        CreateOrUpdateAudiobookInfo(currentBook->path, *currentBook);
     }
     std::cout << "Selecting book " << index << std::endl;
 
@@ -43,27 +43,27 @@ void AudioBookPlayer::selectBook(int index)
     {
         is_playing = false;
         currentBookIndex = index;
-        currentBook = library[index];
+        currentBook = &library[index];
         // print the book info for debugging
-        std::cout << "Book title: " << currentBook.title << std::endl;
-        std::cout << "Book path: " << currentBook.path << std::endl;
-        std::cout << "Book last played file: " << currentBook.last_played_file << std::endl;
-        std::cout << "Book last played position: " << currentBook.last_played_position << std::endl;
+        std::cout << "Book title: " << currentBook->title << std::endl;
+        std::cout << "Book path: " << currentBook->path << std::endl;
+        std::cout << "Book last played file: " << currentBook->last_played_file << std::endl;
+        std::cout << "Book last played position: " << currentBook->last_played_position << std::endl;
 
         // check that the last played file exists, if not set it to the first file
-        std::filesystem::path lastPlayedFilePath = std::filesystem::path(currentBook.path) / currentBook.last_played_file;
+        std::filesystem::path lastPlayedFilePath = std::filesystem::path(currentBook->path) / currentBook->last_played_file;
         // check if the last played file exists and is a file
         bool isFile = std::filesystem::is_regular_file(lastPlayedFilePath);
         if (!isFile)
         {
             std::cout << "Last played file doesn't exist. Setting it to the first file." << std::endl;
-            currentBook.last_played_file = currentBook.files[0];
+            currentBook->last_played_file = currentBook->files[0];
             // update the audiobook_info.yaml file
-            CreateOrUpdateAudiobookInfo(currentBook.path, currentBook);
+            CreateOrUpdateAudiobookInfo(currentBook->path, *currentBook);
         }
 
         // Load a music to play
-        std::filesystem::path musicFilePath = std::filesystem::path(currentBook.path) / currentBook.last_played_file;
+        std::filesystem::path musicFilePath = std::filesystem::path(currentBook->path) / currentBook->last_played_file;
         if (!music.openFromFile(musicFilePath.string()))
         {
             std::cerr << "Failed to load music" << std::endl;
@@ -71,7 +71,7 @@ void AudioBookPlayer::selectBook(int index)
         }
 
         // update book in library
-        update_audiobook(&library, currentBook);
+        update_audiobook(&library, *currentBook);
     }
 }
 
@@ -80,10 +80,10 @@ void AudioBookPlayer::play()
     // play the audio from the last played position
     music.play();
     is_playing = true;
-    music.setPlayingOffset(sf::seconds(currentBook.last_played_position));
+    music.setPlayingOffset(sf::seconds(currentBook->last_played_position));
     // print the current playing offset for debugging
     std::cout << "Playing offset: " << music.getPlayingOffset().asSeconds() << std::endl;
-    update_audiobook(&library, currentBook);
+    update_audiobook(&library, *currentBook);
 }
 
 void AudioBookPlayer::pause()
@@ -92,14 +92,14 @@ void AudioBookPlayer::pause()
     music.pause();
     is_playing = false;
     // store the current position in the last_played_position variable
-    currentBook.last_played_position = music.getPlayingOffset().asSeconds();
+    currentBook->last_played_position = music.getPlayingOffset().asSeconds();
 
     // print the current playing offset for debugging
     std::cout << "Paused offset: " << music.getPlayingOffset().asSeconds() << std::endl;
 
     // update the audiobook_info.yaml file
-    CreateOrUpdateAudiobookInfo(currentBook.path, currentBook);
-    update_audiobook(&library, currentBook);
+    CreateOrUpdateAudiobookInfo(currentBook->path, *currentBook);
+    update_audiobook(&library, *currentBook);
 }
 
 // time control functions
@@ -116,11 +116,11 @@ void AudioBookPlayer::rewind(int x)
             music.setPlayingOffset(music.getPlayingOffset() - sf::seconds(x));
         }
         // store the current position in the last_played_position variable
-        currentBook.last_played_position = music.getPlayingOffset().asSeconds();
+        currentBook->last_played_position = music.getPlayingOffset().asSeconds();
     }
     else
     {
-        currentBook.last_played_position -= x;
+        currentBook->last_played_position -= x;
     }
 
     // print the current playing offset for debugging
@@ -142,13 +142,28 @@ void AudioBookPlayer::fast_forward(int x)
         // fast forward the audio by x seconds
         music.setPlayingOffset(music.getPlayingOffset() + sf::seconds(x));
         // store the current position in the last_played_position variable
-        currentBook.last_played_position = music.getPlayingOffset().asSeconds();
+        currentBook->last_played_position = music.getPlayingOffset().asSeconds();
     }
     else
     {
-        currentBook.last_played_position += x;
+        currentBook->last_played_position += x;
     }
 
     // print the current playing offset for debugging
     std::cout << "Fast forward offset: " << music.getPlayingOffset().asSeconds() << std::endl;
 }
+
+// void AudioBookPlayer::GetBookFiles()
+// {
+//     std::cout << "Getting book files" << std::endl;
+//     std::vector<std::string> files;
+//     for (const auto &entry : std::filesystem::directory_iterator(currentBook.path))
+//     {
+//         std::cout << entry.path() << std::endl;
+//         files.push_back(entry.path().filename().string());
+//     }
+//     currentBook.files = files;
+//     // update the audiobook_info.yaml file
+//     CreateOrUpdateAudiobookInfo(currentBook.path, currentBook);
+//     update_audiobook(&library, currentBook);
+// }

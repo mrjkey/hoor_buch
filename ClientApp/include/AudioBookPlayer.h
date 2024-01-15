@@ -21,13 +21,14 @@ public:
     void pause();
     void rewind(int x);
     void fast_forward(int x);
+    void GetBookFiles();
 
     // private:
     std::vector<Audiobook> library;
     std::string library_directory;
     std::string library_file_path;
     sf::Music music;
-    Audiobook currentBook;
+    Audiobook *currentBook;
     int currentBookIndex = -1;
     bool is_playing = false;
 };
