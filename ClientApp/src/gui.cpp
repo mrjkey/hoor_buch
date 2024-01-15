@@ -202,6 +202,32 @@ void DisplayLibrary(AudioBookPlayer *player)
             for (int fileIndex = 0; fileIndex < files.size(); ++fileIndex)
             {
                 ImGui::PushID(fileIndex);
+
+                // Select button to change the last played file
+                if (ImGui::Button("Select"))
+                {
+                    // Set the last played file
+                    player->library[i].last_played_file = files[fileIndex];
+                    // Set the last played position to 0
+                    player->library[i].last_played_position = 0;
+                    // load the music
+                    std::filesystem::path musicFilePath = std::filesystem::path(player->library[i].path) / player->library[i].last_played_file;
+                    if (!player->music.openFromFile(musicFilePath.string()))
+                    {
+                        std::cerr << "Failed to load music" << std::endl;
+                        throw std::runtime_error("Failed to load music");
+                    }
+                    // Play the music
+                    player->play();
+                    // Update the audiobook info file
+                    CreateOrUpdateAudiobookInfo(player->library[i].path, player->library[i]);
+
+                    // print for debugging
+                    std::cout << "Last played file: " << player->library[i].last_played_file << std::endl;
+                }
+
+                ImGui::SameLine();
+
                 ImGui::Text("%s", files[fileIndex].c_str());
 
                 // Up button - only show if not the first item
