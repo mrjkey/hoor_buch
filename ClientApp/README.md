@@ -117,6 +117,7 @@ git clone https://github.com/Microsoft/vcpkg.git
 ```
 <from ClientApp dir>
 git clone --recursive https://github.com/ocornut/imgui.git -b docking
+git clone https://github.com/aiekick/ImGuiFileDialog.git
 git clone https://github.com/Microsoft/vcpkg.git
 mkdir build
 cd build
@@ -127,4 +128,6 @@ cd build
 ../vcpkg/vcpkg install libsndfile
 ../vcpkg/vcpkg install taglib
 ../vcpkg/vcpkg install portaudio
+../vcpkg/vcpkg install sfml
+../vcpkg/vcpkg install yaml-cpp
 ```

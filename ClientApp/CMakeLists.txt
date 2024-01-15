@@ -6,7 +6,14 @@
 # Specify the minimum version for CMake
 cmake_minimum_required(VERSION 3.10)
 
-set(CMAKE_TOOLCHAIN_FILE "C:/Users/B-Itch/code/hoor_buch/ClientApp/vcpkg/scripts/buildsystems/vcpkg.cmake")
+# Setup the toolchain file for windows or linux, depending on what system I am running this on
+
+if(WIN32)
+    set(CMAKE_TOOLCHAIN_FILE "C:/Users/B-Itch/code/hoor_buch/ClientApp/vcpkg/scripts/buildsystems/vcpkg.cmake")
+elseif(UNIX)
+    set(CMAKE_TOOLCHAIN_FILE "/home/kej7be/hub/hoor_buch/ClientApp/vcpkg/scripts/buildsystems/vcpkg.cmake")
+endif()
+
 
 # Project's name
 project(ClientApp)
@@ -31,8 +38,11 @@ add_library(imgui
 )
 
 # Set this to the path where GLFW's include directory is located
+if(WIN32)
 set(GLFW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/x64-windows/include")
-
+elseif(UNIX)
+set(GLFW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/installed/x64-linux/include")
+endif()
 
 # Include directories for ImGui
 target_include_directories(imgui PUBLIC 
