@@ -26,5 +26,6 @@ public:
     std::string library_file_path;
     sf::Music music;
     Audiobook currentBook;
-    int currentBookIndex;
+    int currentBookIndex = -1;
+    bool is_playing = false;
 };

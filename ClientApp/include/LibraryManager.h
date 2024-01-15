@@ -15,3 +15,4 @@ bool files_changed(const std::string &audiobookPath, Audiobook &audiobook);
 float get_book_duration(const std::string &audiobookPath);
 void add_new_audiobook(std::vector<Audiobook> *library, const std::string audiobook_directory);
 void remove_duplicate_audiobooks(std::vector<Audiobook> *library);
+void update_audiobook(std::vector<Audiobook> *library, Audiobook audiobook);

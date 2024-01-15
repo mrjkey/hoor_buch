@@ -199,13 +199,13 @@ void DisplayNavigationPanel()
     ImGui::EndChild();
 }
 
-void gui_playback_buttons(sf::Music *music)
+void gui_playback_buttons(AudioBookPlayer *player)
 {
     if (ImGui::Button("Play"))
     {
         std::cout << "Play" << std::endl;
         // Trigger audio playback
-        music->play();
+        player->play();
     }
 
     ImGui::SameLine();
@@ -214,16 +214,7 @@ void gui_playback_buttons(sf::Music *music)
     {
         std::cout << "Pause" << std::endl;
         // Pause the audio
-        music->pause();
-    }
-
-    ImGui::SameLine();
-
-    if (ImGui::Button("Stop"))
-    {
-        std::cout << "Stop" << std::endl;
-        // Stop the audio because
-        music->stop();
+        player->pause();
     }
 }
 

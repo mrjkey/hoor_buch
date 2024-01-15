@@ -252,3 +252,15 @@ Audiobook ReadAudiobookInfo(const std::string &audiobookPath)
     }
     return audiobook;
 }
+
+void update_audiobook(std::vector<Audiobook> *library, Audiobook audiobook)
+{
+    for (auto &book : *library)
+    {
+        if (book.path == audiobook.path)
+        {
+            book = audiobook;
+            break;
+        }
+    }
+}

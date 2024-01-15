@@ -150,7 +150,7 @@ void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player)
     if (ImGui::Begin("Audio Book Player", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
     {
 
-        gui_playback_buttons(&player->music);
+        gui_playback_buttons(player);
 
         // Display progress bar for the audiobook
         ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
@@ -178,6 +178,43 @@ void gui_render_frame(GLFWwindow *window)
     glfwSwapBuffers(window);
 }
 
+void execute_periodic_functions(AudioBookPlayer *player)
+{
+    const float updateInterval_object = 0.5f; // Update every 500 milliseconds
+    const float updateInterval_file = 3.0f;   // Update every 3 seconds
+    static float elapsedTime_object = 0.0f;   // Time elapsed since the last update
+    static float elapsedTime_file = 0.0f;     // Time elapsed since the last update
+
+    // Execute periodic functions
+    static float lastFrameTime = 0.0f;
+    float currentFrameTime = glfwGetTime();
+    float deltaTime = currentFrameTime - lastFrameTime;
+    lastFrameTime = currentFrameTime;
+
+    // Update logic
+    if (player->is_playing) // Implement this method to check if the audiobook is playing
+    {
+        elapsedTime_object += deltaTime;
+        elapsedTime_file += deltaTime;
+        if (elapsedTime_object >= updateInterval_object)
+        {
+            // Update last played position
+            player->currentBook.last_played_position = player->music.getPlayingOffset().asSeconds();
+
+            // Reset elapsed time
+            elapsedTime_object = 0.0f;
+        }
+        if (elapsedTime_file >= updateInterval_file)
+        {
+            // Update the audiobook info file
+            CreateOrUpdateAudiobookInfo(player->currentBook.path, player->currentBook);
+
+            // Reset elapsed time
+            elapsedTime_file = 0.0f;
+        }
+    }
+}
+
 void main_loop(GLFWwindow *window, AudioBookPlayer *player)
 {
     // Main loop
@@ -194,6 +231,8 @@ void main_loop(GLFWwindow *window, AudioBookPlayer *player)
 
         // Rendering
         gui_render_frame(window);
+
+        execute_periodic_functions(player);
     }
 }
 

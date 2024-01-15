@@ -15,5 +15,5 @@ void SetDarkStyle();
 void DisplayAlbumArt(GLuint textureId);
 void DisplayLibrary(AudioBookPlayer *player);
 void DisplayNavigationPanel();
-void gui_playback_buttons(sf::Music *music);
+void gui_playback_buttons(AudioBookPlayer *player);
 void gui_setup(GLFWwindow **window);
