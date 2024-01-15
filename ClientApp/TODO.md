@@ -1,1 +1,24 @@
 The list of stuff that I need to get done in this app
+
+- Update the progress bar of a book as it is playing
+	- Calculate elapsed time of all files that came before this files on the list
+	- Get current playing offset 
+	- Convert progress and duration into hours, minutes, seconds
+	- Show progress / duration instead of just duration
+- Continues play - play one file after another
+	- If the end of a file is reached, go to the next file (if it exists)
+	- If rewinding, go to previous file if < 0 and file exists
+	- If forwarding, got to next file if > total duration and file exists
+- If a book is complete, move the book to the completed books section
+- Setup server application that can store library info
+	- This should store 
+		- the client id (client name)
+		- ipv6 address
+		- library .yaml
+		- all book .yamls
+		- list of books
+	- keep track of clients 
+	- when a client syncs to the server, reply with the other client info for progress. 
+- Setup book transfer to other clientapp
+	- copy entire directory file by file
+	- add directory to library
