@@ -49,4 +49,26 @@ void AudioBookPlayer::selectBook(int index)
     }
 }
 
-// void AudioBookPlayer::addBookD
+void AudioBookPlayer::play()
+{
+    // keep track of the play position
+    // when starting to play, use the last_played_position value
+    // when pausing, use the music.getPlayingOffset() value and store it in last_played_position
+    // when stopping, use the music.getPlayingOffset() value and store it in last_played_position
+
+    // play the music from the last played position
+    music.setPlayingOffset(sf::seconds(currentBook.last_played_position));
+    music.play();
+}
+
+void AudioBookPlayer::pause()
+{
+    // store the current position in the last_played_position variable
+    currentBook.last_played_position = music.getPlayingOffset().asSeconds();
+    // current
+
+    // pause the music
+    music.pause();
+
+    // update the audiobook_info.yaml file
+}

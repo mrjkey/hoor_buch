@@ -139,14 +139,22 @@ float get_book_duration(const std::string &audiobookPath)
         {
             if (entry.path().extension() == extension)
             {
-                // read the file metadata
-                TagLib::FileRef f(entry.path().string().c_str());
+                try
+                {
+                    // read the file metadata
+                    TagLib::FileRef f(entry.path().string().c_str());
 
-                // get the duration of the file from the metadata
-                int file_duration = f.audioProperties()->length();
+                    // get the duration of the file from the metadata
+                    int file_duration = f.audioProperties()->length();
 
-                // add the duration to the total duration
-                duration += file_duration;
+                    // add the duration to the total duration
+                    duration += file_duration;
+                }
+                // catch TagLib: FileRef::audioProperties() - Called without a valid file.
+                catch (const std::exception &e)
+                {
+                    std::cout << "Error reading file metadata: " << e.what() << std::endl;
+                }
 
                 // break out of the loop
                 break;

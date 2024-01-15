@@ -17,6 +17,8 @@ class AudioBookPlayer
 public:
     void loadLibrary(const std::string &configFilePath);
     void selectBook(int index);
+    void play();
+    void pause();
 
     // private:
     std::vector<Audiobook> library;

@@ -92,6 +92,26 @@ pkg_check_modules(TAGLIB REQUIRED IMPORTED_TARGET taglib)
 target_link_libraries(ClientApp PkgConfig::TAGLIB)
 
 
+# # Add the path to libvlcpp includes
+# include_directories("libvlcpp")
+
+# # If you have added libvlcpp sources to your project, you might also need to add them to your target
+# file(GLOB LIBVLCPP_SOURCES "libvlcpp/*.cpp")
+# target_link_libraries(ClientApp  ${LIBVLCPP_SOURCES})
+
+# # Link against libVLC
+# # Set the path to the VLC installation
+# set(VLC_INSTALL_PATH "C:\\Program Files\\VideoLAN\\VLC")
+
+# # Link against libvlc and libvlccore
+# find_library(LIBVLC_LIBRARY NAMES libvlc PATHS ${VLC_INSTALL_PATH})
+# find_library(LIBVLCCORE_LIBRARY NAMES libvlccore PATHS ${VLC_INSTALL_PATH})
+# target_link_libraries(ClientApp ${LIBVLC_LIBRARY} ${LIBVLCCORE_LIBRARY})
+
+# find_library(VLC_LIBRARY REQUIRED)
+# target_link_libraries(ClientApp ${VLC_LIBRARY})
+
+
 # Conditionally set the Boost root and library directories based on the OS
 if(WIN32)
     # Set the Boost root (path to the Boost installation).
