@@ -41,7 +41,8 @@ void AudioBookPlayer::selectBook(int index)
         }
 
         // Load a music to play
-        if (!music.openFromFile(currentBook.path + "\\" + currentBook.last_played_file))
+        std::filesystem::path musicFilePath = std::filesystem::path(currentBook.path) / currentBook.last_played_file;
+        if (!music.openFromFile(musicFilePath.string()))
         {
             std::cerr << "Failed to load music" << std::endl;
             throw std::runtime_error("Failed to load music");
