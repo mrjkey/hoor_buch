@@ -101,3 +101,54 @@ void AudioBookPlayer::pause()
     CreateOrUpdateAudiobookInfo(currentBook.path, currentBook);
     update_audiobook(&library, currentBook);
 }
+
+// time control functions
+void AudioBookPlayer::rewind(int x)
+{
+    if (is_playing)
+    {
+        if (music.getPlayingOffset().asSeconds() < x)
+        {
+            music.setPlayingOffset(sf::seconds(0));
+        }
+        else
+        {
+            music.setPlayingOffset(music.getPlayingOffset() - sf::seconds(x));
+        }
+        // store the current position in the last_played_position variable
+        currentBook.last_played_position = music.getPlayingOffset().asSeconds();
+    }
+    else
+    {
+        currentBook.last_played_position -= x;
+    }
+
+    // print the current playing offset for debugging
+    std::cout << "Rewind offset: " << music.getPlayingOffset().asSeconds() << std::endl;
+}
+
+void AudioBookPlayer::fast_forward(int x)
+{
+    if (is_playing)
+    {
+        if (music.getPlayingOffset().asSeconds() + x > music.getDuration().asSeconds())
+        {
+            music.setPlayingOffset(music.getDuration());
+        }
+        else
+        {
+            music.setPlayingOffset(music.getPlayingOffset() + sf::seconds(x));
+        }
+        // fast forward the audio by x seconds
+        music.setPlayingOffset(music.getPlayingOffset() + sf::seconds(x));
+        // store the current position in the last_played_position variable
+        currentBook.last_played_position = music.getPlayingOffset().asSeconds();
+    }
+    else
+    {
+        currentBook.last_played_position += x;
+    }
+
+    // print the current playing offset for debugging
+    std::cout << "Fast forward offset: " << music.getPlayingOffset().asSeconds() << std::endl;
+}

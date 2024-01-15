@@ -19,6 +19,8 @@ public:
     void selectBook(int index);
     void play();
     void pause();
+    void rewind(int x);
+    void fast_forward(int x);
 
     // private:
     std::vector<Audiobook> library;

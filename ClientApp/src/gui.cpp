@@ -201,6 +201,25 @@ void DisplayNavigationPanel()
 
 void gui_playback_buttons(AudioBookPlayer *player)
 {
+    // Display playback buttons
+    if (ImGui::Button("Back 1m"))
+    {
+        std::cout << "Back 1m" << std::endl;
+        // Back 1 minute
+        player->rewind(60);
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Back 10s"))
+    {
+        std::cout << "Back 10s" << std::endl;
+        // Back 10 seconds
+        player->rewind(10);
+    }
+
+    ImGui::SameLine();
+
     if (ImGui::Button("Play"))
     {
         std::cout << "Play" << std::endl;
@@ -215,6 +234,24 @@ void gui_playback_buttons(AudioBookPlayer *player)
         std::cout << "Pause" << std::endl;
         // Pause the audio
         player->pause();
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Foward 10s"))
+    {
+        std::cout << "Foward 10s" << std::endl;
+        // Foward 10 seconds
+        player->fast_forward(10);
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Foward 1m"))
+    {
+        std::cout << "Foward 1m" << std::endl;
+        // Foward 1 minute
+        player->fast_forward(60);
     }
 }
 
