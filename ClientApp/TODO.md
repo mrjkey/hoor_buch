@@ -1,11 +1,11 @@
 The list of stuff that I need to get done in this app
 
 - [x] Add volume control
-- [ ] Progress bar updates with book progress
+- [x] Progress bar updates with book progress
 	- [x] Store all file durations on startup
-	- [ ] Update progress bar will all previous files + current file time
-	- [ ] Show progress in hours, minutes, seconds
-	- [ ] Show progress / duration instead of just duration
+	- [x] Update progress bar will all previous files + current file time
+	- [x] Show progress in hours, minutes, seconds
+	- [x] Show progress / duration instead of just duration
 - [ ] Continuous play - load next file, ff, reverse
 - [ ] Complete book -> move book to another category
 - [ ] Register Client to Server -> Get info from server

@@ -177,7 +177,7 @@ float AudioBookPlayer::GetBookProgress(int index)
     progress += book->last_played_position;
 
     // divide by the total duration
-    book->progress = progress / currentBook->duration;
+    book->progress = progress / book->duration;
 
     return progress; // return the progress in seconds
 }

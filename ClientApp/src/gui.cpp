@@ -8,6 +8,8 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
+#include "utility.cpp"
+
 // Set ImGui style to a more sleek/modern appearance
 void SetModernImGuiStyle()
 {
@@ -132,6 +134,8 @@ void DisplayLibrary(AudioBookPlayer *player)
     // button to add a new audiobook
     AddBookFunctionality(player);
 
+    ImGui::Spacing();
+    ImGui::Spacing();
     ImGui::Separator();
     // Display each audiobook in the library, and the progress of each.
     // The library should have a scroll bar if it is too large to fit in the window.
@@ -160,17 +164,14 @@ void DisplayLibrary(AudioBookPlayer *player)
 
         // get the book progress in seconds
         float progress_s = player->GetBookProgress(i);
-        // Display the audiobook duration
-        ImGui::Text(std::to_string(player->library[i].duration).c_str());
+        // Display the audiobook progress in the following way:
+        // 1h 23m 45s / 5h 12m 30s
+        std::string progress_string = seconds_to_string(progress_s);
+        std::string duration_string = seconds_to_string(player->library[i].duration);
+        ImGui::Text("%s / %s", progress_string.c_str(), duration_string.c_str());
 
         // Display the audiobook cover art
         // DisplayAlbumArt(audiobooks[i].textureId);
-
-        // add a space between each audiobook
-        ImGui::Spacing();
-
-        // add a separator between each audiobook
-        ImGui::Separator();
 
         // Selecting an audiobook should load it into the player
         if (ImGui::IsItemClicked())
@@ -250,8 +251,12 @@ void DisplayLibrary(AudioBookPlayer *player)
             ImGui::TreePop();
         }
 
-        // end the child component for each audiobook
-        // ImGui::EndChild();
+        // add a space between each audiobook
+        ImGui::Spacing();
+        ImGui::Spacing();
+
+        // add a separator between each audiobook
+        ImGui::Separator();
     }
 
     ImGui::EndChild();
