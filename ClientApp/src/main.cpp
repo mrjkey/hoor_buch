@@ -213,6 +213,22 @@ void execute_periodic_functions(AudioBookPlayer *player)
             // Reset elapsed time
             elapsedTime_file = 0.0f;
         }
+        // if the audio file has ended and the next file exists, play the next file
+        if (player->music.getStatus() == sf::SoundSource::Status::Stopped && player->currentBook->files.size() > 1)
+        {
+            // get the index of the current file
+            int currentFileIndex = std::distance(player->currentBook->files.begin(), std::find(player->currentBook->files.begin(), player->currentBook->files.end(), player->currentBook->last_played_file));
+
+            // if the current file is not the last file in the list
+            if (currentFileIndex != player->currentBook->files.size() - 1)
+            {
+                // play the next file
+                player->music.openFromFile(player->currentBook->path + "/" + player->currentBook->files[currentFileIndex + 1]);
+                player->music.play();
+                player->currentBook->last_played_file = player->currentBook->files[currentFileIndex + 1];
+                player->currentBook->last_played_position = 0;
+            }
+        }
     }
 }
 

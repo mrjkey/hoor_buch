@@ -6,7 +6,10 @@ The list of stuff that I need to get done in this app
 	- [x] Update progress bar will all previous files + current file time
 	- [x] Show progress in hours, minutes, seconds
 	- [x] Show progress / duration instead of just duration
-- [ ] Continuous play - load next file, ff, reverse
+- [ ] Continuous play
+	- [x] Load next file when one ends
+	- [x] Load next file when fast forwarding
+	- [ ] Load previous file if reversing far enough
 - [ ] Complete book -> move book to another category
 - [ ] Register Client to Server -> Get info from server
 - [ ] Setup book transfer between clients
