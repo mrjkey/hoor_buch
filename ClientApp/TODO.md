@@ -1,10 +1,16 @@
 The list of stuff that I need to get done in this app
 
-- Update the progress bar of a book as it is playing
-	- Calculate elapsed time of all files that came before this files on the list
-	- Get current playing offset 
-	- Convert progress and duration into hours, minutes, seconds
-	- Show progress / duration instead of just duration
+- [x] Add volume control
+- [ ] Progress bar updates with book progress
+	- [x] Store all file durations on startup
+	- [ ] Update progress bar will all previous files + current file time
+	- [ ] Show progress in hours, minutes, seconds
+	- [ ] Show progress / duration instead of just duration
+- [ ] Continuous play - load next file, ff, reverse
+- [ ] Complete book -> move book to another category
+- [ ] Register Client to Server -> Get info from server
+- [ ] Setup book transfer between clients
+
 - Continues play - play one file after another
 	- If the end of a file is reached, go to the next file (if it exists)
 	- If rewinding, go to previous file if < 0 and file exists
@@ -22,3 +28,6 @@ The list of stuff that I need to get done in this app
 - Setup book transfer to other clientapp
 	- copy entire directory file by file
 	- add directory to library
+
+
+

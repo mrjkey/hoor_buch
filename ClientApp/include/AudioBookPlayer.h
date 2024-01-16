@@ -22,6 +22,7 @@ public:
     void rewind(int x);
     void fast_forward(int x);
     void GetBookFiles();
+    float GetBookProgress(int index);
 
     // private:
     std::vector<Audiobook> library;

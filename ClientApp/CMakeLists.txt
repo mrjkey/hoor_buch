@@ -14,6 +14,11 @@ elseif(UNIX)
     set(CMAKE_TOOLCHAIN_FILE "/home/kej7be/hub/hoor_buch/ClientApp/vcpkg/scripts/buildsystems/vcpkg.cmake")
 endif()
 
+# Ignore all warnings, because fuck it
+if(MSVC)
+    add_compile_options(/w)
+endif()
+
 
 # Project's name
 project(ClientApp)

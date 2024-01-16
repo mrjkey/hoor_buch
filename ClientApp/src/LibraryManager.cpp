@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <filesystem>
+#include <map>
 
 #include <taglib/tag.h>
 #include <taglib/fileref.h>
@@ -87,7 +88,7 @@ void add_new_audiobook(std::vector<Audiobook> *library, const std::string audiob
         changed = true;
     }
 
-    float duration = get_book_duration(audiobook_directory);
+    float duration = get_book_duration(audiobook_directory, &audiobook.file_durations);
     if (audiobook.duration != duration)
     {
         audiobook.duration = duration;
@@ -125,9 +126,10 @@ void remove_duplicate_audiobooks(std::vector<Audiobook> *library)
     }
 }
 
-float get_book_duration(const std::string &audiobookPath)
+float get_book_duration(const std::string &audiobookPath, std::map<std::string, float> *file_durations)
 {
     float duration = 0;
+
     // list of file extensions to look for
     std::vector<std::string> file_extensions = {".mp3", ".m4a", ".m4b", ".wav", ".ogg", ".flac"};
 
@@ -146,6 +148,8 @@ float get_book_duration(const std::string &audiobookPath)
 
                     // get the duration of the file from the metadata
                     int file_duration = f.audioProperties()->length();
+                    // add the duration of the file to the map using the filename as the key
+                    (*file_durations)[entry.path().filename().string()] = file_duration;
 
                     // add the duration to the total duration
                     duration += file_duration;

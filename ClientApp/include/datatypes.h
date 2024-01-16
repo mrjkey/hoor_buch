@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #define CONFIG_FILE_NAME "config.yaml"
 #define LIBRARY_FILE_NAME "library.yaml"
@@ -19,4 +20,5 @@ struct Audiobook
     std::vector<std::string> files;
     std::string last_played_file;
     int last_played_position;
+    std::map<std::string, float> file_durations;
 };

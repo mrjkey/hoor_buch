@@ -158,6 +158,8 @@ void DisplayLibrary(AudioBookPlayer *player)
         // Display the audiobook author
         // ImGui::Text(player->library[i].author.c_str());
 
+        // get the book progress in seconds
+        float progress_s = player->GetBookProgress(i);
         // Display the audiobook duration
         ImGui::Text(std::to_string(player->library[i].duration).c_str());
 
@@ -179,20 +181,6 @@ void DisplayLibrary(AudioBookPlayer *player)
             // music.openFromFile(audiobooks[i].path);
             // music.play();
         }
-
-        // // Add a TreeNode for collapsible file listing
-        // if (ImGui::TreeNode(player->library[i].title.c_str()))
-        // {
-        //     // Get the list of files for the current book
-        //     std::vector<std::string> files = player->library[i].files;
-
-        //     for (const auto &file : files)
-        //     {
-        //         ImGui::Text("%s", file.c_str());
-        //     }
-
-        //     ImGui::TreePop();
-        // }
 
         // Add a TreeNode for collapsible file listing
         if (ImGui::TreeNode(player->library[i].title.c_str()))

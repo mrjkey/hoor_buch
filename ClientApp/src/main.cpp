@@ -149,19 +149,20 @@ void gui_audio_book_player_window(sf::Music *music, AudioBookPlayer *player)
 
     if (ImGui::Begin("Audio Book Player", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse))
     {
-
+        // Display the playback buttons
         gui_playback_buttons(player);
 
-        // Display progress bar for the audiobook
-        ImGui::ProgressBar(0.5f, ImVec2(-FLT_MIN, 0.0f), "Progress");
+        // volume slider
+        float volume = music->getVolume();
+        if (ImGui::SliderFloat("Volume", &volume, 0.0f, 100.0f))
+        {
+            music->setVolume(volume);
+        }
 
         gui_choose_library_dialog(player);
 
         // Display the library
         DisplayLibrary(player);
-
-        // Display the book progress
-        // DisplayBookProgress();
     }
     ImGui::End();
 }

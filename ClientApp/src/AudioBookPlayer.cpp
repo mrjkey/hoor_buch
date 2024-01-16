@@ -153,17 +153,31 @@ void AudioBookPlayer::fast_forward(int x)
     std::cout << "Fast forward offset: " << music.getPlayingOffset().asSeconds() << std::endl;
 }
 
-// void AudioBookPlayer::GetBookFiles()
-// {
-//     std::cout << "Getting book files" << std::endl;
-//     std::vector<std::string> files;
-//     for (const auto &entry : std::filesystem::directory_iterator(currentBook.path))
-//     {
-//         std::cout << entry.path() << std::endl;
-//         files.push_back(entry.path().filename().string());
-//     }
-//     currentBook.files = files;
-//     // update the audiobook_info.yaml file
-//     CreateOrUpdateAudiobookInfo(currentBook.path, currentBook);
-//     update_audiobook(&library, currentBook);
-// }
+float AudioBookPlayer::GetBookProgress(int index)
+{
+    // get the book by index
+    Audiobook *book = &library[index];
+
+    float progress = 0.0f;
+    // add the duration of all the files before the current file
+    for (int i = 0; i < book->files.size(); i++)
+    {
+        // if the current file is the last played file, break
+        if (book->files[i] == book->last_played_file)
+        {
+            break;
+        }
+        else
+        {
+            // add the duration of the file
+            progress += book->file_durations[book->files[i]];
+        }
+    }
+    // add the last played position
+    progress += book->last_played_position;
+
+    // divide by the total duration
+    book->progress = progress / currentBook->duration;
+
+    return progress; // return the progress in seconds
+}
