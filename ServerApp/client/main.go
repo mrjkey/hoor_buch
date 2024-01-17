@@ -17,11 +17,31 @@ type ClientInfo struct {
 // Assuming Audiobook struct is defined similarly to the server
 
 func main() {
+	// populate a sample audiobook 
+	book := shared.Audiobook{
+		Path:               "/path/to/audiobook",
+		Title:              "Test Audiobook",
+		Author:             "Test Author",
+		Progress:           0.0,
+		Duration:           0.0,
+		Files:              []string{},
+		LastPlayedFile:     "",
+		LastPlayedPosition: 0,
+		FileDurations:      map[string]float64{},
+	}
+
+	// populate a sample client info with the above audiobook
 	clientInfo := ClientInfo{
 		Name:     "TestClient",
-		Library:  []shared.Audiobook{}, // Populate as needed
+		Library:  []shared.Audiobook{book},
 		IPv6Addr: "::1",
 	}
+
+	// clientInfo := ClientInfo{
+	// 	Name:     "TestClient",
+	// 	Library:  []shared.Audiobook{}, // Populate as needed
+	// 	IPv6Addr: "::1",
+	// }
 
 	requestBody, err := json.Marshal(clientInfo)
 	if err != nil {
