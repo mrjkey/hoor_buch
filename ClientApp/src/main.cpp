@@ -39,7 +39,7 @@ void setup_for_main(AudioBookPlayer *player)
             std::cout << "no directory in yaml file, adding one" << std::endl;
             // Update the audiobooks_directory value
 
-            config["audiobooks_directory"] = "C:\\Users";
+            config["audiobooks_directory"] = ".";
             std::ofstream fout("config.yaml");
             fout << config;
             fout.close();
@@ -49,7 +49,7 @@ void setup_for_main(AudioBookPlayer *player)
     {
         // create a yaml file
         YAML::Node config;
-        config["audiobooks_directory"] = "C:\\Users";
+        config["audiobooks_directory"] = ".";
         std::ofstream fout("config.yaml");
         fout << config;
         fout.close();

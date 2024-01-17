@@ -8,7 +8,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "utility.cpp"
+#include "utility.h"
 
 // Set ImGui style to a more sleek/modern appearance
 void SetModernImGuiStyle()
