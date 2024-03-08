@@ -21,59 +21,57 @@ import (
 
 var currentPos int = 0
 
-func main() {
-	// create a new window
-	// test out audio stuff
+func setupAudioPlayer(filename string) (*beep.Ctrl, error) {
 	// open an audio file
-	f, err := os.Open("test.mp3")
+	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Error opening file")
 		fmt.Println(err)
-		return
+		return nil, err
 	}
-	defer f.Close()
+	// defer file.Close()
 
 	// decode the audio file
-	streamer, format, err := mp3.Decode(f)
+	streamer, format, err := mp3.Decode(file)
 	if err != nil {
 		fmt.Println("Error decoding file")
 		fmt.Println(err)
-		return
+		return nil, err
 	}
-	defer streamer.Close()
+	// defer streamer.Close()
 
-	// initialize the speaker
+	// initialize the speaker	// initialize the speaker
 	err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 	if err != nil {
 		fmt.Println("Error initializing speaker")
 		fmt.Println(err)
-		return
+		return nil, err
 	}
 
-	var ctrl *beep.Ctrl
-	ctrl = &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: false}
+	// var ctrl *beep.Ctrl
+	ctrl := &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: false}
 
 	// play the audio
 	// done := make(chan bool)
 	speaker.Play(ctrl)
+	return ctrl, nil
+}
 
-	// start the main loop
-	fmt.Println("Hello, World!")
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Audiobook App")
-
+func setupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
 	// Play button
 	playBtn := widget.NewButton("Play", func() {
 		go func() {
-			speaker.Lock()
+			// speaker.Lock()
 			fmt.Println("Playing audio")
 			if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok && currentPos != 0 {
 				fmt.Println("Seeking to position: ", currentPos)
 				seeker.Seek(currentPos)
+			} else {
+				fmt.Println("Seeker not found")
 			}
 
 			ctrl.Paused = false
-			speaker.Unlock()
+			// speaker.Unlock()
 			fmt.Println("end of play button function")
 		}()
 	})
@@ -81,11 +79,15 @@ func main() {
 	// Pause button
 	pauseBtn := widget.NewButton("Pause", func() {
 		go func() {
-			speaker.Lock()
+			// speaker.Lock()
 			fmt.Println("Pausing audio")
+			ctrl.Paused = true
+			if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok {
+				currentPos = seeker.Position()
+			}
 			// speaker.Lock()
 			// speaker.Play(ctrl)
-			speaker.Unlock()
+			// speaker.Unlock()
 			fmt.Println("end of pause button function")
 		}()
 	})
@@ -95,6 +97,32 @@ func main() {
 		playBtn,
 		pauseBtn,
 	)
+
+	return content, nil
+}
+
+func main() {
+	// create a new window
+	// test out audio stuff
+
+	filename := "test.mp3"
+	ctrl, err := setupAudioPlayer(filename)
+	if err != nil {
+		fmt.Println("Error setting up audio player")
+		fmt.Println(err)
+		return
+	}
+	// start the main loop
+	fmt.Println("Hello, World!")
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Audiobook App")
+
+	content, err := setupAudioPlayerGui(ctrl)
+	if err != nil {
+		fmt.Println("Error setting up audio player gui")
+		fmt.Println(err)
+		return
+	}
 
 	// Set the content of the window.
 	// For now, we'll just use a simple label as a placeholder.
