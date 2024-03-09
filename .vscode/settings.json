@@ -56,5 +56,12 @@
   "C_Cpp_Runner.showCompilationTime": false,
   "C_Cpp_Runner.useLinkTimeOptimization": false,
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
-  "cmake.sourceDirectory": "C:/Users/B-Itch/code/hoor_buch/ClientApp"
+  "cmake.sourceDirectory": "C:/Users/B-Itch/code/hoor_buch/ClientApp",
+  "vim.leader": "<Space>",
+  "editor.formatOnSave": true,
+ "vim.hlsearch": true,
+ "vim.easymotion": true,
+  "vim.incsearch": true,
+  "vim.useSystemClipboard": true,
+  "vim.useCtrlKeys": true,
 }
