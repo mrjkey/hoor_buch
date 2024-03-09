@@ -1,6 +1,7 @@
 package audio_manager
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,14 +22,14 @@ var Window fyne.Window
 
 // audiobook library type
 type Audiobook struct {
-	Title  string
-	Author string
-	Length int
-	Files  []string
+	Title  string   `json:"title"`
+	Author string   `json:"author"`
+	Length int      `json:"length"`
+	Files  []string `json:"files"` // list of file paths
 }
 
 type Library struct {
-	Audiobooks []Audiobook
+	Audiobooks []Audiobook `json:"audiobooks"`
 }
 
 func (l *Library) AddAudiobook(book Audiobook) {
@@ -124,6 +125,7 @@ func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
 	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
 		openFileDialog(Window, func(path string) {
 			fmt.Println("Path selected: ", path)
+			AddAudiobookToLibrary(path)
 		})
 	})
 
@@ -152,13 +154,29 @@ func LoadLibrary() {
 	// load the library from a json file
 }
 
-func SaveLibrary() {
+func SaveLibrary() error {
 	// save the library to a json file
+	data, err := json.MarshalIndent(library, "", "    ")
+	if err != nil {
+		return fmt.Errorf("error marshalling library to json: %w", err)
+	}
 
+	file, err := os.Create("library.json")
+	if err != nil {
+		return fmt.Errorf("error creating file: %w", err)
+	}
+	defer file.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+		return fmt.Errorf("error writing to file: %w", err)
+	}
+
+	return nil
 }
 
 // add an audiobook to the library
-func AddAudiobookToLibrary() (book_path string) {
+func AddAudiobookToLibrary(book_path string) {
 	fmt.Println("Book path: ", book_path)
 
 	// get list of all audio files in the directory
@@ -195,9 +213,6 @@ func AddAudiobookToLibrary() (book_path string) {
 
 	// save the library
 	SaveLibrary()
-
-	// return
-	return
 }
 
 func listAudioFilesInDirectory(directory string) ([]AudioFile, error) {
