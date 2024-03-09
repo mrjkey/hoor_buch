@@ -13,7 +13,9 @@ import (
 // This application will be an audiobook player that is build using go and the fyne library
 // The application will be able to manage a library of audiobooks and play them
 func main() {
-	// create a new window
+	myApp := app.New()
+	myWindow := myApp.NewWindow("Audiobook App")
+	audio_manager.Init(myApp, myWindow)
 	// test out audio stuff
 
 	filename := "test.mp3"
@@ -25,8 +27,6 @@ func main() {
 	}
 	// start the main loop
 	fmt.Println("Hello, World!")
-	myApp := app.New()
-	myWindow := myApp.NewWindow("Audiobook App")
 
 	content, err := audio_manager.SetupAudioPlayerGui(ctrl)
 	if err != nil {
@@ -40,7 +40,7 @@ func main() {
 	myWindow.SetContent(content)
 
 	// Set the window size.
-	myWindow.Resize(fyne.NewSize(400, 300))
+	myWindow.Resize(fyne.NewSize(800, 600))
 
 	// Show and run the application.
 	myWindow.ShowAndRun()
