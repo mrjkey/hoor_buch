@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 	"github.com/faiface/beep"
@@ -23,11 +24,12 @@ var Window fyne.Window
 
 // audiobook library type
 type Audiobook struct {
-	Title  string   `json:"title"`
-	Author string   `json:"author"`
-	Length int      `json:"length"`
-	Path   string   `json:"path"`  // path to the directory containing the audiobook
-	Files  []string `json:"files"` // list of file paths
+	Title       string        `json:"title"`
+	Author      string        `json:"author"`
+	TotalTime   time.Duration `json:"total_time"`   // length of the audiobook in seconds
+	CurrentTime time.Duration `json:"current_time"` // current position in the audiobook in seconds
+	Path        string        `json:"path"`         // path to the directory containing the audiobook
+	Files       []string      `json:"files"`        // list of file paths
 }
 
 type Library struct {
@@ -47,6 +49,7 @@ type AudioFile struct {
 
 var isPlaying bool
 var content *fyne.Container
+var bookList *fyne.Container
 
 func Init(main_app fyne.App, main_window fyne.Window) {
 	App = main_app
@@ -132,12 +135,16 @@ func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
 		})
 	})
 
-	content = container.NewVBox(
+	// setup content as a "column" container, which stacks its children vertically
+	header := container.NewVBox(
 		widget.NewLabel("Hello, Fyne!"),
 		playBtn,
-		// pauseBtn,
 		addAudiobookBtn,
+		// layout.NewSpacer(),
 	)
+
+	content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
+	// content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
 
 	LoadLibrary()
 
@@ -155,51 +162,69 @@ func togglePlayPause(ctrl *beep.Ctrl, playBtn *widget.Button) {
 	isPlaying = !isPlaying
 }
 
-// func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
-//     // Example of changing the Play button with an icon and primary importance
-//     playIcon := theme.MediaPlayIcon()
-//     playBtn := widget.NewButtonWithIcon("Play", playIcon, func() {
-//         go PlayAudio(ctrl)
-//     })
-//     playBtn.Importance = widget.HighImportance // Make it a primary button
+func durationToHHMMSS(d time.Duration) string {
+	// Convert duration to total seconds
+	totalSeconds := int(d.Seconds())
+	hours := totalSeconds / 3600
+	minutes := (totalSeconds % 3600) / 60
+	seconds := totalSeconds % 60
 
-//     // Pause button with an icon
-//     pauseIcon := theme.MediaPauseIcon()
-//     pauseBtn := widget.NewButtonWithIcon("Pause", pauseIcon, func() {
-//         go PauseAudio(ctrl)
-//     })
+	// Return formatted string
+	return fmt.Sprintf("%02d:%02d:%02d", hours, minutes, seconds)
+}
 
-//     // Stop button
-//     stopIcon := theme.MediaStopIcon()
-//     stopBtn := widget.NewButtonWithIcon("Stop", stopIcon, func() {
-//         go StopAudio(ctrl) // Assuming you have a StopAudio function
-//     })
-
-//     // Adding an audiobook button
-//     addAudiobookIcon := theme.ContentAddIcon()
-//     addAudiobookBtn := widget.NewButtonWithIcon("Add Audiobook", addAudiobookIcon, func() {
-//         openFileDialog(Window, func(path string) {
-//             fmt.Println("Path selected: ", path)
-//             AddAudiobookToLibrary(path)
-//         })
-//     })
-
-//     // Adjusting button layout, using a grid for example
-//     buttonLayout := container.NewGridWithColumns(2, playBtn, pauseBtn, stopBtn, addAudiobookBtn)
-
-//     content := container.NewVBox(
-//         widget.NewLabel("Hello, Fyne!"),
-//         buttonLayout,
-//     )
-
-//     return content, nil
-// }
+func displayProgress(currentTime, totalTime time.Duration) string {
+	return fmt.Sprintf("%s / %s", durationToHHMMSS(currentTime), durationToHHMMSS(totalTime))
+}
 
 func DisplayLibrary() {
-	// append the content of the window with the library
-	content.Add(widget.NewLabel("Library"))
+	// Remove the previous library content
+	content.Remove(bookList)
 
+	// Use a List widget for selectable books
+	bookList := widget.NewList(
+		func() int {
+			return len(library.Audiobooks)
+		},
+		func() fyne.CanvasObject {
+			label := widget.NewLabel("")
+			progressBar := widget.NewProgressBar()
+			return container.NewVBox(label, progressBar)
+		},
+		func(id widget.ListItemID, co fyne.CanvasObject) {
+			book := library.Audiobooks[id]
+			container := co.(*fyne.Container)
+			label := container.Objects[0].(*widget.Label)
+			progressBar := container.Objects[1].(*widget.ProgressBar)
+
+			label.SetText(fmt.Sprintf("%s\n%s", book.Title, displayProgress(book.CurrentTime, book.TotalTime)))
+			progressBar.Value = book.CurrentTime.Seconds() / book.TotalTime.Seconds()
+			progressBar.Refresh()
+		},
+	)
+
+	// Handle selection
+	bookList.OnSelected = func(id widget.ListItemID) {
+		book := library.Audiobooks[id]
+		fmt.Printf("Selected book: %s\n", book.Title)
+	}
+
+	// Add the library content back into the main content
+	content.Add(bookList)
 }
+
+// func DisplayLibrary() {
+// 	// remove the previous library content
+// 	content.Remove(libraryContent)
+// 	// update the library content
+// 	libraryContent = container.NewVBox()
+// 	for _, book := range library.Audiobooks {
+// 		libraryContent.Add(widget.NewLabel(book.Title))
+// 	}
+
+// 	// add the library content back into the main content
+// 	content.Add(libraryContent)
+// }
 
 func LoadLibrary() {
 	// load the library from a json file
@@ -270,13 +295,17 @@ func AddAudiobookToLibrary(book_path string) {
 		length += int(file.Info.Size())
 	}
 
+	// convert length to time.Duration
+	lengthDuration := time.Duration(length)
+
 	// add the audiobook to the library
 	audiobook := Audiobook{
-		Title:  title,
-		Author: author,
-		Length: length,
-		Path:   book_path,
-		Files:  filePaths,
+		Title:       title,
+		Author:      author,
+		TotalTime:   lengthDuration,
+		CurrentTime: 0,
+		Path:        book_path,
+		Files:       filePaths,
 	}
 	library.AddAudiobook(audiobook)
 
@@ -344,3 +373,43 @@ func openFileDialog(window fyne.Window, callback func(string)) {
 	}
 	fileDialog.Show()
 }
+
+// func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
+//     // Example of changing the Play button with an icon and primary importance
+//     playIcon := theme.MediaPlayIcon()
+//     playBtn := widget.NewButtonWithIcon("Play", playIcon, func() {
+//         go PlayAudio(ctrl)
+//     })
+//     playBtn.Importance = widget.HighImportance // Make it a primary button
+
+//     // Pause button with an icon
+//     pauseIcon := theme.MediaPauseIcon()
+//     pauseBtn := widget.NewButtonWithIcon("Pause", pauseIcon, func() {
+//         go PauseAudio(ctrl)
+//     })
+
+//     // Stop button
+//     stopIcon := theme.MediaStopIcon()
+//     stopBtn := widget.NewButtonWithIcon("Stop", stopIcon, func() {
+//         go StopAudio(ctrl) // Assuming you have a StopAudio function
+//     })
+
+//     // Adding an audiobook button
+//     addAudiobookIcon := theme.ContentAddIcon()
+//     addAudiobookBtn := widget.NewButtonWithIcon("Add Audiobook", addAudiobookIcon, func() {
+//         openFileDialog(Window, func(path string) {
+//             fmt.Println("Path selected: ", path)
+//             AddAudiobookToLibrary(path)
+//         })
+//     })
+
+//     // Adjusting button layout, using a grid for example
+//     buttonLayout := container.NewGridWithColumns(2, playBtn, pauseBtn, stopBtn, addAudiobookBtn)
+
+//     content := container.NewVBox(
+//         widget.NewLabel("Hello, Fyne!"),
+//         buttonLayout,
+//     )
+
+//     return content, nil
+// }
