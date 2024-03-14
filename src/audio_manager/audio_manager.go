@@ -26,6 +26,7 @@ type Audiobook struct {
 	Title  string   `json:"title"`
 	Author string   `json:"author"`
 	Length int      `json:"length"`
+	Path   string   `json:"path"`  // path to the directory containing the audiobook
 	Files  []string `json:"files"` // list of file paths
 }
 
@@ -274,6 +275,7 @@ func AddAudiobookToLibrary(book_path string) {
 		Title:  title,
 		Author: author,
 		Length: length,
+		Path:   book_path,
 		Files:  filePaths,
 	}
 	library.AddAudiobook(audiobook)
