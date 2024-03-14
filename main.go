@@ -35,15 +35,7 @@ func main() {
 		return
 	}
 
-	// Set the content of the window.
-	// For now, we'll just use a simple label as a placeholder.
 	myWindow.SetContent(content)
-
-	// Set the window size.
 	myWindow.Resize(fyne.NewSize(800, 600))
-
-	// Show and run the application.
 	myWindow.ShowAndRun()
-	// wait for the audio to finish
-	// <-done
 }

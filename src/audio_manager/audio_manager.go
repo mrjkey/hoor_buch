@@ -10,6 +10,7 @@ import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 	"github.com/faiface/beep"
 	"github.com/faiface/beep/mp3"
@@ -42,6 +43,9 @@ type AudioFile struct {
 	Path string
 	Info os.FileInfo
 }
+
+var isPlaying bool
+var content *fyne.Container
 
 func Init(main_app fyne.App, main_window fyne.Window) {
 	App = main_app
@@ -77,81 +81,142 @@ func SetupAudioPlayer(filename string) (*beep.Ctrl, error) {
 		return nil, err
 	}
 
-	// var ctrl *beep.Ctrl
-	ctrl := &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: false}
-
-	// play the audio
-	// done := make(chan bool)
+	ctrl := &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: true}
 	speaker.Play(ctrl)
 	return ctrl, nil
 }
 
+func PlayAudio(ctrl *beep.Ctrl) {
+	// speaker.Lock()
+	fmt.Println("Playing audio")
+	if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok && currentPos != 0 {
+		fmt.Println("Seeking to position: ", currentPos)
+		seeker.Seek(currentPos)
+	} else {
+		fmt.Println("Seeker not found")
+	}
+
+	ctrl.Paused = false
+	// speaker.Unlock()
+	fmt.Println("end of play button function")
+}
+
+func SetupPlayBtn(ctrl *beep.Ctrl) *widget.Button {
+	playBtn := widget.NewButton("Play", nil) // Temporarily no action
+	playBtn.OnTapped = func() {
+		go func() {
+			togglePlayPause(ctrl, playBtn)
+		}()
+	}
+	return playBtn
+}
+
+func PauseAudio(ctrl *beep.Ctrl) {
+	fmt.Println("Pausing audio")
+	ctrl.Paused = true
+	if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok {
+		currentPos = seeker.Position()
+	}
+	fmt.Println("end of pause button function")
+}
+
 func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
-	// Play button
-	playBtn := widget.NewButton("Play", func() {
-		go func() {
-			// speaker.Lock()
-			fmt.Println("Playing audio")
-			if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok && currentPos != 0 {
-				fmt.Println("Seeking to position: ", currentPos)
-				seeker.Seek(currentPos)
-			} else {
-				fmt.Println("Seeker not found")
-			}
-
-			ctrl.Paused = false
-			// speaker.Unlock()
-			fmt.Println("end of play button function")
-		}()
-	})
-
-	// Pause button
-	pauseBtn := widget.NewButton("Pause", func() {
-		go func() {
-			// speaker.Lock()
-			fmt.Println("Pausing audio")
-			ctrl.Paused = true
-			if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok {
-				currentPos = seeker.Position()
-			}
-			// speaker.Lock()
-			// speaker.Play(ctrl)
-			// speaker.Unlock()
-			fmt.Println("end of pause button function")
-		}()
-	})
-
+	playBtn := SetupPlayBtn(ctrl)
 	// button to add an audiobook to the library
 	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
 		openFileDialog(Window, func(path string) {
 			fmt.Println("Path selected: ", path)
 			AddAudiobookToLibrary(path)
+			DisplayLibrary()
 		})
 	})
 
-	content := container.NewVBox(
+	content = container.NewVBox(
 		widget.NewLabel("Hello, Fyne!"),
 		playBtn,
-		pauseBtn,
+		// pauseBtn,
 		addAudiobookBtn,
 	)
+
+	LoadLibrary()
 
 	return content, nil
 }
 
-// create a library of audiobooks.
-// an audiobook can consist of 1 or many audio files
-// an individual audio book's progress should be saved
-// the library should be able to be saved and loaded from a file
-// the library should be able to be sorted by title, author, and progress
-// the library should be able to be searched by title, author, and progress
-// the library should be auto-loaded when the application starts
-// The user should have the option to add or remove audiobooks from the library
-// The library should keep track if you have finished an audiobook or not
-// This data should be saved in a format that can be easily loaded and saved, and uploaded to a cloud service
+func togglePlayPause(ctrl *beep.Ctrl, playBtn *widget.Button) {
+	if isPlaying {
+		PauseAudio(ctrl)
+		playBtn.SetText("Play")
+	} else {
+		PlayAudio(ctrl)
+		playBtn.SetText("Pause")
+	}
+	isPlaying = !isPlaying
+}
+
+// func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
+//     // Example of changing the Play button with an icon and primary importance
+//     playIcon := theme.MediaPlayIcon()
+//     playBtn := widget.NewButtonWithIcon("Play", playIcon, func() {
+//         go PlayAudio(ctrl)
+//     })
+//     playBtn.Importance = widget.HighImportance // Make it a primary button
+
+//     // Pause button with an icon
+//     pauseIcon := theme.MediaPauseIcon()
+//     pauseBtn := widget.NewButtonWithIcon("Pause", pauseIcon, func() {
+//         go PauseAudio(ctrl)
+//     })
+
+//     // Stop button
+//     stopIcon := theme.MediaStopIcon()
+//     stopBtn := widget.NewButtonWithIcon("Stop", stopIcon, func() {
+//         go StopAudio(ctrl) // Assuming you have a StopAudio function
+//     })
+
+//     // Adding an audiobook button
+//     addAudiobookIcon := theme.ContentAddIcon()
+//     addAudiobookBtn := widget.NewButtonWithIcon("Add Audiobook", addAudiobookIcon, func() {
+//         openFileDialog(Window, func(path string) {
+//             fmt.Println("Path selected: ", path)
+//             AddAudiobookToLibrary(path)
+//         })
+//     })
+
+//     // Adjusting button layout, using a grid for example
+//     buttonLayout := container.NewGridWithColumns(2, playBtn, pauseBtn, stopBtn, addAudiobookBtn)
+
+//     content := container.NewVBox(
+//         widget.NewLabel("Hello, Fyne!"),
+//         buttonLayout,
+//     )
+
+//     return content, nil
+// }
+
+func DisplayLibrary() {
+	// append the content of the window with the library
+	content.Add(widget.NewLabel("Library"))
+
+}
 
 func LoadLibrary() {
 	// load the library from a json file
+	file, err := os.Open("library.json")
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&library)
+	if err != nil {
+		return
+	}
+	fmt.Println("Library: ", library)
+
+	// display the library
+	DisplayLibrary()
 }
 
 func SaveLibrary() error {
@@ -182,12 +247,14 @@ func AddAudiobookToLibrary(book_path string) {
 	// get list of all audio files in the directory
 	audioFiles, err := listAudioFilesInDirectory(book_path)
 	if err != nil {
+		fmt.Println("Error getting audio files")
 		return
 	}
 
 	filePaths := make([]string, len(audioFiles))
 	for i, file := range audioFiles {
 		filePaths[i] = file.Path
+		fmt.Println("File: ", file.Path)
 	}
 
 	// get the title to be the name of the directory
@@ -224,20 +291,25 @@ func listAudioFilesInDirectory(directory string) ([]AudioFile, error) {
 			return err
 
 		}
-		if !info.IsDir() {
+		if info.IsDir() {
 			return nil
 		}
-		// check if the file is an audio file
-		// if it is, add it to the list
+
 		switch filepath.Ext(path) {
 		case ".mp3", ".wav":
 			audioFiles = append(audioFiles, AudioFile{Path: path, Info: info})
+			// fmt.Println("Audio File: ", path)
+		default:
+			// fmt.Println("File is not an audio file: ", path)
 		}
 		return nil
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	// print length of audio files
+	fmt.Println("Length of audio files: ", len(audioFiles))
 
 	return audioFiles, nil
 }
@@ -258,5 +330,15 @@ func openFileDialog(window fyne.Window, callback func(string)) {
 		callback(uri.Path())
 	}, window)
 	//	fileDialog.SetFilter(fileFilter)
+	defaultPath := "D:\\Torrents\\Books"
+	convertedPath := storage.NewFileURI(defaultPath)
+
+	listablePath, err := storage.ListerForURI(convertedPath)
+	if err != nil {
+		fmt.Println("Error making the URI listable:", err)
+		// Handle the error, perhaps default to some other path or present an error to the user
+	} else {
+		fileDialog.SetLocation(listablePath)
+	}
 	fileDialog.Show()
 }
