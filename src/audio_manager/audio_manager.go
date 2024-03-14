@@ -56,6 +56,26 @@ func Init(main_app fyne.App, main_window fyne.Window) {
 	Window = main_window
 }
 
+func getAudioFileDuration(filePath string) (float64, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+
+	// m, err := tag.ReadFrom(file)
+	// if err != nil {
+	// 	return 0, err
+	// }
+
+	if filepath.Ext(filePath) == ".mp3" {
+		_, format, _ := mp3.Decode(file)
+		return float64(format.SampleRate.N(time.Second / 10)), nil
+	} else {
+		return 0, fmt.Errorf("unsupported file type")
+	}
+}
+
 func SetupAudioPlayer(filename string) (*beep.Ctrl, error) {
 	// open an audio file
 	file, err := os.Open(filename)
@@ -188,18 +208,26 @@ func DisplayLibrary() {
 		},
 		func() fyne.CanvasObject {
 			label := widget.NewLabel("")
-			progressBar := widget.NewProgressBar()
-			return container.NewVBox(label, progressBar)
+			slider := widget.NewSlider(0, 1) // Initial min and max values; adjust based on actual audiobook durations
+			slider.Step = 1                  // Set step value to 1 for fine-grained control, adjust as needed
+			return container.NewVBox(label, slider)
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
 			book := library.Audiobooks[id]
 			container := co.(*fyne.Container)
 			label := container.Objects[0].(*widget.Label)
-			progressBar := container.Objects[1].(*widget.ProgressBar)
+			slider := container.Objects[1].(*widget.Slider)
 
 			label.SetText(fmt.Sprintf("%s\n%s", book.Title, displayProgress(book.CurrentTime, book.TotalTime)))
-			progressBar.Value = book.CurrentTime.Seconds() / book.TotalTime.Seconds()
-			progressBar.Refresh()
+			slider.Min = 0
+			slider.Max = book.TotalTime.Seconds()
+			slider.Value = book.CurrentTime.Seconds()
+			slider.OnChanged = func(value float64) {
+				// Update the book's current time based on slider value
+				// You'll need to implement this to actually seek in the audio playback
+				book.CurrentTime = time.Duration(value) * time.Second
+			}
+			slider.Refresh()
 		},
 	)
 
@@ -292,11 +320,12 @@ func AddAudiobookToLibrary(book_path string) {
 	// get the length in seconds of the audiobook by adding up the length of all the audio files
 	length := 0
 	for _, file := range audioFiles {
-		length += int(file.Info.Size())
+		duration, _ := getAudioFileDuration(file.Path)
+		length += int(duration)
 	}
 
 	// convert length to time.Duration
-	lengthDuration := time.Duration(length)
+	lengthDuration := time.Duration(length) * time.Second
 
 	// add the audiobook to the library
 	audiobook := Audiobook{
