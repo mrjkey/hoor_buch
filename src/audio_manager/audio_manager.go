@@ -14,38 +14,13 @@ import (
 	"fyne.io/fyne/v2/storage"
 	"fyne.io/fyne/v2/widget"
 	"github.com/faiface/beep"
-	"github.com/faiface/beep/mp3"
-	"github.com/faiface/beep/speaker"
 )
 
 var currentPos int = 0
 var App fyne.App
 var Window fyne.Window
 
-// audiobook library type
-type Audiobook struct {
-	Title       string        `json:"title"`
-	Author      string        `json:"author"`
-	TotalTime   time.Duration `json:"total_time"`   // length of the audiobook in seconds
-	CurrentTime time.Duration `json:"current_time"` // current position in the audiobook in seconds
-	Path        string        `json:"path"`         // path to the directory containing the audiobook
-	Files       []string      `json:"files"`        // list of file paths
-}
-
-type Library struct {
-	Audiobooks []Audiobook `json:"audiobooks"`
-}
-
-func (l *Library) AddAudiobook(book Audiobook) {
-	l.Audiobooks = append(l.Audiobooks, book)
-}
-
 var library Library
-
-type AudioFile struct {
-	Path string
-	Info os.FileInfo
-}
 
 var isPlaying bool
 var content *fyne.Container
@@ -54,60 +29,6 @@ var bookList *fyne.Container
 func Init(main_app fyne.App, main_window fyne.Window) {
 	App = main_app
 	Window = main_window
-}
-
-func getAudioFileDuration(filePath string) (float64, error) {
-	file, err := os.Open(filePath)
-	if err != nil {
-		return 0, err
-	}
-	defer file.Close()
-
-	// m, err := tag.ReadFrom(file)
-	// if err != nil {
-	// 	return 0, err
-	// }
-
-	if filepath.Ext(filePath) == ".mp3" {
-		_, format, _ := mp3.Decode(file)
-		return float64(format.SampleRate.N(time.Second / 10)), nil
-	} else {
-		return 0, fmt.Errorf("unsupported file type")
-	}
-}
-
-func SetupAudioPlayer(filename string) (*beep.Ctrl, error) {
-	// open an audio file
-	file, err := os.Open(filename)
-	if err != nil {
-		fmt.Println("Error opening file")
-		fmt.Println(err)
-		return nil, err
-		//weird formating
-
-	}
-	// defer file.Close()
-
-	// decode the audio file
-	streamer, format, err := mp3.Decode(file)
-	if err != nil {
-		fmt.Println("Error decoding file")
-		fmt.Println(err)
-		return nil, err
-	}
-	// defer streamer.Close()
-
-	// initialize the speaker	// initialize the speaker
-	err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-	if err != nil {
-		fmt.Println("Error initializing speaker")
-		fmt.Println(err)
-		return nil, err
-	}
-
-	ctrl := &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: true}
-	speaker.Play(ctrl)
-	return ctrl, nil
 }
 
 func PlayAudio(ctrl *beep.Ctrl) {
