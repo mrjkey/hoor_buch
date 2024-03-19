@@ -1,13 +1,14 @@
+//go:build (prod && ignore) || (dev && ignore) || test
+// +build prod,ignore dev,ignore test
 
 // Single line comment
 /* Multi-
- line comment */
+line comment */
 
- /* A build tag is a line comment starting with // +build
-  and can be executed by go build -tags="foo bar" command.
-  Build tags are placed before the package clause near or at the top of the file
-  followed by a blank line or other line comments. */
-// +build prod, dev, test
+/* A build tag is a line comment starting with // +build
+and can be executed by go build -tags="foo bar" command.
+Build tags are placed before the package clause near or at the top of the file
+followed by a blank line or other line comments. */
 
 // A package clause starts every source file.
 // main is a special name declaring an executable rather than a library.
@@ -25,14 +26,14 @@ import (
 
 // A function definition. Main is special. It is the entry point for the
 // executable program. Love it or hate it, Go uses brace brackets.
-func main() {
-	// Println outputs a line to stdout.
-	// It comes from the package fmt.
-	fmt.Println("Hello world!")
+// func main() {
+// 	// Println outputs a line to stdout.
+// 	// It comes from the package fmt.
+// 	fmt.Println("Hello world!")
 
-	// Call another function within this package.
-	beyondHello()
-}
+// 	// Call another function within this package.
+// 	beyondHello()
+// }
 
 // Functions have parameters in parentheses.
 // If there are no parameters, empty parentheses are still required.

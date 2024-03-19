@@ -8,32 +8,31 @@ import (
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
-	"github.com/faiface/beep"
 )
 
-func SetupPlayBtn(ctrl *beep.Ctrl) *widget.Button {
+func SetupPlayBtn() *widget.Button {
 	playBtn := widget.NewButton("Play", nil) // Temporarily no action
 	playBtn.OnTapped = func() {
 		go func() {
-			togglePlayPause(ctrl, playBtn)
+			togglePlayPause(playBtn)
 		}()
 	}
 	return playBtn
 }
 
-func togglePlayPause(ctrl *beep.Ctrl, playBtn *widget.Button) {
+func togglePlayPause(playBtn *widget.Button) {
 	if isPlaying {
-		PauseAudio(ctrl)
+		PauseAudio()
 		playBtn.SetText("Play")
 	} else {
-		PlayAudio(ctrl)
+		PlayAudio()
 		playBtn.SetText("Pause")
 	}
 	isPlaying = !isPlaying
 }
 
-func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
-	playBtn := SetupPlayBtn(ctrl)
+func SetupAudioPlayerGui() (*fyne.Container, error) {
+	playBtn := SetupPlayBtn()
 	// button to add an audiobook to the library
 	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
 		openFileDialog(Window, func(path string) {
@@ -96,10 +95,17 @@ func DisplayLibrary() {
 	// Handle selection
 	bookList.OnSelected = func(id widget.ListItemID) {
 		book := library.Audiobooks[id]
+		err := SetupAudioPlayer(&book)
+		if err != nil {
+			fmt.Println("error setting up audio player")
+			fmt.Println(err)
+		}
+
 		fmt.Printf("Selected book: %s\n", book.Title)
 		fmt.Printf("gui id: %d\n", id)
 	}
 
+	bookmark := GetBookmark()
 	if bookmark.book != nil {
 		bookList.Select(bookmark.index)
 	}

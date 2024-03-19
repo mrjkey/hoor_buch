@@ -10,52 +10,75 @@ import (
 	"github.com/faiface/beep/speaker"
 )
 
-func SetupAudioPlayer(filename string) (*beep.Ctrl, error) {
-	// open an audio file
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
+var global_ctrl *beep.Ctrl
+var global_streamer *beep.StreamSeekCloser
+
+func GetCtrl() *beep.Ctrl {
+	return global_ctrl
+}
+
+func GetStreamer() *beep.StreamSeekCloser {
+	return global_streamer
+}
+
+func SetupAudioPlayer(book *Audiobook) error {
+	if global_ctrl != nil {
+		PauseAudio()
 	}
-	// defer file.Close()
+	// open an audio file
+	file, err := os.Open(book.CurrentFile)
+	if err != nil {
+		return err
+	}
 
 	// decode the audio file
 	streamer, format, err := mp3.Decode(file)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// defer streamer.Close()
+	global_streamer = &streamer
 
-	// initialize the speaker	// initialize the speaker
+	// initialize the speaker
 	err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	ctrl := &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: true}
-	speaker.Play(ctrl)
-	return ctrl, nil
+	global_ctrl = &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: true}
+
+	fmt.Println(streamer.Position())
+
+	// init book position
+	fmt.Println("Seeking to position: ", book.CurrentFileTime)
+	streamer.Seek(book.GetFileTimeAsInt())
+
+	speaker.Play(global_ctrl)
+	return nil
 }
 
-func PlayAudio(ctrl *beep.Ctrl) {
+func PlayAudio() {
+	ctrl := GetCtrl()
+	book := GetBookmark().book
 	// speaker.Lock()
 	fmt.Println("Playing audio")
-	if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok && currentPos != 0 {
-		fmt.Println("Seeking to position: ", currentPos)
-		seeker.Seek(currentPos)
-	} else {
-		fmt.Println("Seeker not found")
-	}
+	fmt.Println("Seeking to position: ", book.CurrentFileTime)
+	streamer := *GetStreamer()
+	streamer.Seek(book.GetFileTimeAsInt())
+	// book.GetFileTimeAsInt())
 
 	ctrl.Paused = false
 	// speaker.Unlock()
 	fmt.Println("end of play button function")
 }
 
-func PauseAudio(ctrl *beep.Ctrl) {
+func PauseAudio() {
+	ctrl := GetCtrl()
+	book := GetBookmark().book
+	streamer := *GetStreamer()
 	fmt.Println("Pausing audio")
 	ctrl.Paused = true
-	if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok {
-		currentPos = seeker.Position()
-	}
+	book.SetFileTimeFromInt(streamer.Position())
 	fmt.Println("end of pause button function")
+	fmt.Println("current file time: ", book.CurrentFileTime)
+	SaveLibrary()
 }

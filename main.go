@@ -18,17 +18,17 @@ func main() {
 	audio_manager.Init(myApp, myWindow)
 	// test out audio stuff
 
-	filename := "test.mp3"
-	ctrl, err := audio_manager.SetupAudioPlayer(filename)
-	if err != nil {
-		fmt.Println("Error setting up audio player")
-		fmt.Println(err)
-		return
-	}
-	// start the main loop
-	fmt.Println("Hello, World!")
+	// filename := "test.mp3"
+	// ctrl, err := audio_manager.SetupAudioPlayer(filename)
+	// if err != nil {
+	// 	fmt.Println("Error setting up audio player")
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// // start the main loop
+	// fmt.Println("Hello, World!")
 
-	content, err := audio_manager.SetupAudioPlayerGui(ctrl)
+	content, err := audio_manager.SetupAudioPlayerGui()
 	if err != nil {
 		fmt.Println("Error setting up audio player gui")
 		fmt.Println(err)

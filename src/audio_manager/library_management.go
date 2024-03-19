@@ -10,14 +10,17 @@ import (
 	"fyne.io/fyne/v2"
 )
 
-var currentPos int = 0
 var App fyne.App
 var Window fyne.Window
 var library Library
 var isPlaying bool
 var content *fyne.Container
 var bookList *fyne.Container
-var bookmark Bookmark = Bookmark{-1, nil}
+var global_bookmark Bookmark = Bookmark{-1, nil}
+
+func GetBookmark() Bookmark {
+	return global_bookmark
+}
 
 func Init(main_app fyne.App, main_window fyne.Window) {
 	App = main_app
@@ -39,7 +42,7 @@ func LoadLibrary() {
 	}
 	fmt.Println("Library: ", library)
 
-	if bookmark.book == nil {
+	if global_bookmark.book == nil {
 		// if the size of the library is greater than 0, set the current book to the first book in the library
 		if len(library.Audiobooks) > 0 {
 			_ = SetBookmarkByIndex(0)
@@ -77,14 +80,14 @@ func SetBookmarkByTitle(title string) error {
 	if err != nil {
 		return err
 	}
-	bookmark = Bookmark{index, book}
+	global_bookmark = Bookmark{index, book}
 	return nil
 }
 
 func SetBookmarkByIndex(index int) error {
 	if index < len(library.Audiobooks) {
 		book := &library.Audiobooks[index]
-		bookmark = Bookmark{index, book}
+		global_bookmark = Bookmark{index, book}
 		return nil
 	} else {
 		return fmt.Errorf("provided index is greater than libarary length %d", index)
@@ -96,7 +99,7 @@ func SetBookmarkByBook(book *Audiobook) error {
 	if index == -1 {
 		return fmt.Errorf("no index for book found: %s", book.Title)
 	}
-	bookmark = Bookmark{index, book}
+	global_bookmark = Bookmark{index, book}
 	return nil
 }
 
@@ -138,6 +141,8 @@ func AddAudiobookToLibrary(book_path string) {
 	// get the title to be the name of the directory
 	title := filepath.Base(book_path)
 
+	current_file := audioFiles[0].Path
+
 	// get the author
 	author := "Test Author"
 
@@ -153,12 +158,14 @@ func AddAudiobookToLibrary(book_path string) {
 
 	// add the audiobook to the library
 	audiobook := Audiobook{
-		Title:       title,
-		Author:      author,
-		TotalTime:   lengthDuration,
-		CurrentTime: 0,
-		Path:        book_path,
-		Files:       filePaths,
+		Title:           title,
+		Author:          author,
+		TotalTime:       lengthDuration,
+		CurrentTime:     0,
+		CurrentFile:     current_file,
+		CurrentFileTime: 0,
+		Path:            book_path,
+		Files:           filePaths,
 	}
 	library.AddAudiobook(audiobook)
 
