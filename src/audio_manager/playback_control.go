@@ -1,6 +1,7 @@
 package audio_manager
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -33,4 +34,28 @@ func SetupAudioPlayer(filename string) (*beep.Ctrl, error) {
 	ctrl := &beep.Ctrl{Streamer: beep.Loop(-1, streamer), Paused: true}
 	speaker.Play(ctrl)
 	return ctrl, nil
+}
+
+func PlayAudio(ctrl *beep.Ctrl) {
+	// speaker.Lock()
+	fmt.Println("Playing audio")
+	if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok && currentPos != 0 {
+		fmt.Println("Seeking to position: ", currentPos)
+		seeker.Seek(currentPos)
+	} else {
+		fmt.Println("Seeker not found")
+	}
+
+	ctrl.Paused = false
+	// speaker.Unlock()
+	fmt.Println("end of play button function")
+}
+
+func PauseAudio(ctrl *beep.Ctrl) {
+	fmt.Println("Pausing audio")
+	ctrl.Paused = true
+	if seeker, ok := ctrl.Streamer.(beep.StreamSeeker); ok {
+		currentPos = seeker.Position()
+	}
+	fmt.Println("end of pause button function")
 }
