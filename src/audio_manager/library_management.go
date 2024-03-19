@@ -87,14 +87,14 @@ func SetBookmarkByIndex(index int) error {
 		bookmark = Bookmark{index, book}
 		return nil
 	} else {
-		return fmt.Errorf("Provided index is greater than libarary length %d\n", index)
+		return fmt.Errorf("provided index is greater than libarary length %d", index)
 	}
 }
 
 func SetBookmarkByBook(book *Audiobook) error {
 	index := GetIndexByBook(book)
 	if index == -1 {
-		return fmt.Errorf("No index for book found: %s\n", book.Title)
+		return fmt.Errorf("no index for book found: %s", book.Title)
 	}
 	bookmark = Bookmark{index, book}
 	return nil
@@ -115,7 +115,7 @@ func GetBookByTitle(title string) (int, *Audiobook, error) {
 			return key, &book, nil
 		}
 	}
-	return -1, nil, fmt.Errorf("No book by that name: %s\n", title)
+	return -1, nil, fmt.Errorf("no book by that name: %s", title)
 }
 
 // add an audiobook to the library
