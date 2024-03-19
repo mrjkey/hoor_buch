@@ -17,7 +17,7 @@ var library Library
 var isPlaying bool
 var content *fyne.Container
 var bookList *fyne.Container
-var currentBook *Audiobook = nil
+var bookmark Bookmark = Bookmark{-1, nil}
 
 func Init(main_app fyne.App, main_window fyne.Window) {
 	App = main_app
@@ -39,15 +39,16 @@ func LoadLibrary() {
 	}
 	fmt.Println("Library: ", library)
 
+	if bookmark.book == nil {
+		// if the size of the library is greater than 0, set the current book to the first book in the library
+		if len(library.Audiobooks) > 0 {
+			_ = SetBookmarkByIndex(0)
+		}
+	}
+
 	// display the library
 	DisplayLibrary()
 
-	if currentBook == nil {
-		// if the size of the library is greater than 0, set the current book to the first book in the library
-		if len(library.Audiobooks) > 0 {
-			SetCurrentBook(&library.Audiobooks[0])
-		}
-	}
 }
 
 func SaveLibrary() error {
@@ -71,17 +72,50 @@ func SaveLibrary() error {
 	return nil
 }
 
-func SetCurrentBook(book *Audiobook) {
-	currentBook = book
+func SetBookmarkByTitle(title string) error {
+	index, book, err := GetBookByTitle(title)
+	if err != nil {
+		return err
+	}
+	bookmark = Bookmark{index, book}
+	return nil
 }
 
-func GetBookByTitle(title string) *Audiobook {
-	for _, book := range library.Audiobooks {
-		if book.Title == title {
-			return &book
+func SetBookmarkByIndex(index int) error {
+	if index < len(library.Audiobooks) {
+		book := &library.Audiobooks[index]
+		bookmark = Bookmark{index, book}
+		return nil
+	} else {
+		return fmt.Errorf("Provided index is greater than libarary length %d\n", index)
+	}
+}
+
+func SetBookmarkByBook(book *Audiobook) error {
+	index := GetIndexByBook(book)
+	if index == -1 {
+		return fmt.Errorf("No index for book found: %s\n", book.Title)
+	}
+	bookmark = Bookmark{index, book}
+	return nil
+}
+
+func GetIndexByBook(book *Audiobook) int {
+	for key, value := range library.Audiobooks {
+		if &value == book {
+			return key
 		}
 	}
-	return nil
+	return -1
+}
+
+func GetBookByTitle(title string) (int, *Audiobook, error) {
+	for key, book := range library.Audiobooks {
+		if book.Title == title {
+			return key, &book, nil
+		}
+	}
+	return -1, nil, fmt.Errorf("No book by that name: %s\n", title)
 }
 
 // add an audiobook to the library

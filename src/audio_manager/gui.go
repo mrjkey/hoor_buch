@@ -97,6 +97,11 @@ func DisplayLibrary() {
 	bookList.OnSelected = func(id widget.ListItemID) {
 		book := library.Audiobooks[id]
 		fmt.Printf("Selected book: %s\n", book.Title)
+		fmt.Printf("gui id: %d\n", id)
+	}
+
+	if bookmark.book != nil {
+		bookList.Select(bookmark.index)
 	}
 
 	// Add the library content back into the main content

@@ -29,3 +29,8 @@ type AudioFile struct {
 	Path string
 	Info os.FileInfo
 }
+
+type Bookmark struct {
+	index int
+	book  *Audiobook
+}
