@@ -18,14 +18,15 @@ type Audiobook struct {
 	Files           []string      `json:"files"`             // list of file paths
 }
 
-func (b *Audiobook) GetFileTimeAsInt() int {
-	return int(b.CurrentFileTime.Seconds())
+func (b *Audiobook) GetFileTimeAsPosition() int {
+	format := GetFormat()
+	return int(b.CurrentFileTime.Seconds()) * int(format.SampleRate)
 }
 
-func (b *Audiobook) SetFileTimeFromInt(length int) {
-	b.CurrentFileTime = time.Duration(length) * time.Second
+func (b *Audiobook) SetFileTimeFromPosition(position int) {
+	format := GetFormat()
+	b.CurrentFileTime = time.Duration(position/int(format.SampleRate)) * time.Second
 	fmt.Println("Setting file time: ", b.CurrentFileTime)
-	fmt.Println("Setting file time as int: ", length)
 }
 
 type Library struct {

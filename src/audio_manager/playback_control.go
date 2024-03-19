@@ -12,6 +12,7 @@ import (
 
 var global_ctrl *beep.Ctrl
 var global_streamer *beep.StreamSeekCloser
+var global_format *beep.Format
 
 func GetCtrl() *beep.Ctrl {
 	return global_ctrl
@@ -19,6 +20,10 @@ func GetCtrl() *beep.Ctrl {
 
 func GetStreamer() *beep.StreamSeekCloser {
 	return global_streamer
+}
+
+func GetFormat() *beep.Format {
+	return global_format
 }
 
 func SetupAudioPlayer(book *Audiobook) error {
@@ -37,6 +42,7 @@ func SetupAudioPlayer(book *Audiobook) error {
 		return err
 	}
 	global_streamer = &streamer
+	global_format = &format
 
 	// initialize the speaker
 	err = speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
@@ -50,7 +56,7 @@ func SetupAudioPlayer(book *Audiobook) error {
 
 	// init book position
 	fmt.Println("Seeking to position: ", book.CurrentFileTime)
-	streamer.Seek(book.GetFileTimeAsInt())
+	streamer.Seek(book.GetFileTimeAsPosition())
 
 	speaker.Play(global_ctrl)
 	return nil
@@ -63,7 +69,7 @@ func PlayAudio() {
 	fmt.Println("Playing audio")
 	fmt.Println("Seeking to position: ", book.CurrentFileTime)
 	streamer := *GetStreamer()
-	streamer.Seek(book.GetFileTimeAsInt())
+	streamer.Seek(book.GetFileTimeAsPosition())
 	// book.GetFileTimeAsInt())
 
 	ctrl.Paused = false
@@ -77,8 +83,8 @@ func PauseAudio() {
 	streamer := *GetStreamer()
 	fmt.Println("Pausing audio")
 	ctrl.Paused = true
-	book.SetFileTimeFromInt(streamer.Position())
+	book.SetFileTimeFromPosition(streamer.Position())
 	fmt.Println("end of pause button function")
-	fmt.Println("current file time: ", book.CurrentFileTime)
+	fmt.Println("current file time: ", book.GetFileTimeAsPosition())
 	SaveLibrary()
 }
