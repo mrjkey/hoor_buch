@@ -90,7 +90,8 @@ func SliderToVolume(sliderPos float64) float64 {
 
 // Update GUI setup to include sliders and current file label
 func SetupAudioPlayerGui() (*fyne.Container, error) {
-	playBtn := SetupPlayBtn()
+	// playBtn := SetupPlayBtn()
+	controlButtons := SetupControlButtons()
 
 	// Initialize sliders and labels
 	bookProgressSlider = widget.NewSlider(0, 100) // Assuming 100% as the max value for book progress
@@ -116,7 +117,7 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		volumeSliderLabel,
 		volumeSlider,
 		currentFileLabel,
-		playBtn,
+		controlButtons,
 		widget.NewLabel("Book Progress:"),
 		bookProgressSlider,
 		widget.NewLabel("File Progress:"),
@@ -127,6 +128,51 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 	LoadLibrary()
 
 	return content, nil
+}
+
+// Add the additional button setup functions here
+func SetupControlButtons() *fyne.Container {
+	// Icons for the control buttons
+	prevIcon := theme.MediaSkipPreviousIcon()
+	rewindOneMinuteIcon := theme.MediaFastRewindIcon()
+	rewindTenSecondsIcon := theme.MediaFastRewindIcon()
+	fastForwardTenSecondsIcon := theme.MediaFastForwardIcon()
+	fastForwardOneMinuteIcon := theme.MediaFastForwardIcon()
+	nextIcon := theme.MediaSkipNextIcon()
+
+	// Initialize buttons with icons
+	prevBtn := widget.NewButtonWithIcon("", prevIcon, func() {
+		// Implement the functionality for "Previous File"
+	})
+	rewindOneMinuteBtn := widget.NewButtonWithIcon("1 minute", rewindOneMinuteIcon, func() {
+		// Implement the functionality for "Rewind One Minute"
+	})
+	rewindTenSecondsBtn := widget.NewButtonWithIcon("10 seconds", rewindTenSecondsIcon, func() {
+		// Implement the functionality for "Rewind Ten Seconds"
+	})
+	playPauseBtn := SetupPlayBtn() // Your existing function for play/pause
+	fastForwardTenSecondsBtn := widget.NewButtonWithIcon("10 seconds", fastForwardTenSecondsIcon, func() {
+		// Implement the functionality for "Fast Forward Ten Seconds"
+	})
+	fastForwardOneMinuteBtn := widget.NewButtonWithIcon("1 minute", fastForwardOneMinuteIcon, func() {
+		// Implement the functionality for "Fast Forward One Minute"
+	})
+	nextBtn := widget.NewButtonWithIcon("", nextIcon, func() {
+		// Implement the functionality for "Next File"
+	})
+
+	// Arrange buttons in a horizontal layout
+	controlButtons := container.NewHBox(
+		prevBtn,
+		rewindOneMinuteBtn,
+		rewindTenSecondsBtn,
+		playPauseBtn,
+		fastForwardTenSecondsBtn,
+		fastForwardOneMinuteBtn,
+		nextBtn,
+	)
+
+	return controlButtons
 }
 
 func DisplayLibrary() {
