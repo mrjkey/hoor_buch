@@ -20,8 +20,8 @@ func getAudioFileDuration(filePath string) (float64, error) {
 	defer file.Close()
 
 	if filepath.Ext(filePath) == ".mp3" {
-		_, format, _ := mp3.Decode(file)
-		return float64(format.SampleRate.N(time.Second / 10)), nil
+		streamer, format, _ := mp3.Decode(file)
+		return float64(streamer.Len()) / float64(format.SampleRate), nil
 	} else {
 		return 0, fmt.Errorf("unsupported file type")
 	}
@@ -57,7 +57,7 @@ func listAudioFilesInDirectory(directory string) ([]AudioFile, error) {
 
 		switch filepath.Ext(path) {
 		case ".mp3", ".wav":
-			audioFiles = append(audioFiles, AudioFile{Path: path, Info: info})
+			audioFiles = append(audioFiles, AudioFile{Path: path})
 			// fmt.Println("Audio File: ", path)
 		default:
 			// fmt.Println("File is not an audio file: ", path)

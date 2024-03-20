@@ -48,13 +48,6 @@ func togglePlayPause(playBtn *widget.Button) {
 // func SetupAudioPlayerGuiOld() (*fyne.Container, error) {
 // 	playBtn := SetupPlayBtn()
 // 	// button to add an audiobook to the library
-// 	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
-// 		openFileDialog(Window, func(path string) {
-// 			fmt.Println("Path selected: ", path)
-// 			AddAudiobookToLibrary(path)
-// 			DisplayLibrary()
-// 		})
-// 	})
 
 // 	// setup content as a "column" container, which stacks its children vertically
 // 	header := container.NewVBox(
@@ -112,6 +105,14 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 	// Setup audio update goroutine
 	go updateAudioProgress()
 
+	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
+		openFileDialog(Window, func(path string) {
+			fmt.Println("Path selected: ", path)
+			AddAudiobookToLibrary(path)
+			DisplayLibrary()
+		})
+	})
+
 	// Setup content with new widgets
 	content = container.NewVBox(
 		volumeSliderLabel,
@@ -122,6 +123,7 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		bookProgressSlider,
 		widget.NewLabel("File Progress:"),
 		fileProgressSlider,
+		addAudiobookBtn,
 	)
 
 	// Your existing setup logic...
@@ -256,7 +258,7 @@ func updateAudioProgress() {
 			}
 
 			// Update current file label
-			_, fileName := filepath.Split(GetBookmark().book.CurrentFile)
+			_, fileName := filepath.Split(GetBookmark().book.CurrentFile.Path)
 			currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
 		}
 

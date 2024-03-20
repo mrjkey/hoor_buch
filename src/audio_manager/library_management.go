@@ -123,6 +123,10 @@ func GetBookByTitle(title string) (int, *Audiobook, error) {
 // add an audiobook to the library
 func AddAudiobookToLibrary(book_path string) {
 	fmt.Println("Book path: ", book_path)
+	prev_book := BookAlreadyInLibrary(book_path)
+	if prev_book != nil {
+		fmt.Println("Book already in library")
+	}
 
 	// get list of all audio files in the directory
 	audioFiles, err := listAudioFilesInDirectory(book_path)
@@ -140,15 +144,15 @@ func AddAudiobookToLibrary(book_path string) {
 	// get the title to be the name of the directory
 	title := filepath.Base(book_path)
 
-	current_file := audioFiles[0].Path
-
 	// get the author
 	author := "Test Author"
 
 	// get the length in seconds of the audiobook by adding up the length of all the audio files
 	length := 0
-	for _, file := range audioFiles {
+	for key, file := range audioFiles {
 		duration, _ := getAudioFileDuration(file.Path)
+		fmt.Println("Duration: ", duration)
+		audioFiles[key].Length = time.Duration(duration) * time.Second
 		length += int(duration)
 	}
 
@@ -161,13 +165,27 @@ func AddAudiobookToLibrary(book_path string) {
 		Author:          author,
 		TotalTime:       lengthDuration,
 		CurrentTime:     0,
-		CurrentFile:     current_file,
+		CurrentFile:     &audioFiles[0],
 		CurrentFileTime: 0,
 		Path:            book_path,
-		Files:           filePaths,
+		Files:           audioFiles,
 	}
-	library.AddAudiobook(audiobook)
+
+	if prev_book != nil {
+		*prev_book = audiobook
+	} else {
+		library.AddAudiobook(audiobook)
+	}
 
 	// save the library
 	SaveLibrary()
+}
+
+func BookAlreadyInLibrary(book_path string) *Audiobook {
+	for i, book := range library.Audiobooks {
+		if book.Path == book_path {
+			return &library.Audiobooks[i]
+		}
+	}
+	return nil
 }

@@ -46,7 +46,7 @@ func loadAndPlayCurrentFile() error {
 		PauseAudio()
 	}
 
-	file, err := os.Open(book.CurrentFile)
+	file, err := os.Open(book.CurrentFile.Path)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func handleEndOfFile() {
 	book := GetBookmark().book
 	nextFileIndex := findNextFileIndex()
 	if nextFileIndex < len(book.Files) {
-		book.CurrentFile = book.Files[nextFileIndex]
+		book.CurrentFile = &book.Files[nextFileIndex]
 		book.CurrentFileTime = 0
 		loadAndPlayCurrentFile() // Load and play the next file
 	} else {
@@ -101,7 +101,7 @@ func handleEndOfFile() {
 func findNextFileIndex() int {
 	book := GetBookmark().book
 	for i, file := range book.Files {
-		if file == book.CurrentFile {
+		if file == *book.CurrentFile {
 			return i + 1 // Return the index of the next file
 		}
 	}
