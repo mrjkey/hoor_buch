@@ -20,6 +20,7 @@ var (
 	content            *fyne.Container
 	volumeSlider       *widget.Slider
 	volumeSliderLabel  *widget.Label
+	timeProgressLabel  *widget.Label
 )
 
 func SetupPlayBtn() *widget.Button {
@@ -149,22 +150,32 @@ func SetupControlButtons() *fyne.Container {
 	// Initialize buttons with icons
 	prevBtn := widget.NewButtonWithIcon("", prevIcon, func() {
 		// Implement the functionality for "Previous File"
+		loadAndPlayPreviousFile()
+		bookmark := GetBookmark()
+		bookmark.gui_init = false
 	})
 	rewindOneMinuteBtn := widget.NewButtonWithIcon("1 minute", rewindOneMinuteIcon, func() {
 		// Implement the functionality for "Rewind One Minute"
+		SeekAudio(-60)
 	})
 	rewindTenSecondsBtn := widget.NewButtonWithIcon("10 seconds", rewindTenSecondsIcon, func() {
 		// Implement the functionality for "Rewind Ten Seconds"
+		SeekAudio(-10)
 	})
 	playPauseBtn := SetupPlayBtn() // Your existing function for play/pause
 	fastForwardTenSecondsBtn := widget.NewButtonWithIcon("10 seconds", fastForwardTenSecondsIcon, func() {
 		// Implement the functionality for "Fast Forward Ten Seconds"
+		SeekAudio(10)
 	})
 	fastForwardOneMinuteBtn := widget.NewButtonWithIcon("1 minute", fastForwardOneMinuteIcon, func() {
 		// Implement the functionality for "Fast Forward One Minute"
+		SeekAudio(60)
 	})
 	nextBtn := widget.NewButtonWithIcon("", nextIcon, func() {
 		// Implement the functionality for "Next File"
+		loadAndPlayNextFile()
+		bookmark := GetBookmark()
+		bookmark.gui_init = false
 	})
 
 	// Arrange buttons in a horizontal layout
@@ -199,10 +210,10 @@ func DisplayLibrary() {
 		func(id widget.ListItemID, co fyne.CanvasObject) {
 			book := library.Audiobooks[id]
 			container := co.(*fyne.Container)
-			label := container.Objects[0].(*widget.Label)
+			timeProgressLabel = container.Objects[0].(*widget.Label)
 			slider := container.Objects[1].(*widget.Slider)
 
-			label.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+			timeProgressLabel.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
 			slider.Min = 0
 			slider.Max = book.TotalTime.Seconds()
 			slider.Value = book.CurrentTime.Seconds()
@@ -251,8 +262,7 @@ func updateAudioProgress() {
 			if book.CurrentFileTime > old_current_file_time || !GetBookmark().gui_init {
 				bookmark := GetBookmark()
 				// calculate the book progress, update overall current time
-				current_file_index := GetIndexByBook(book)
-				book.CurrentTime = GetSummedDurationUpToIndex(current_file_index) + book.CurrentFileTime
+				book.CurrentTime = GetSummedDurationUpToIndex() + book.CurrentFileTime
 				totalDuration := book.TotalTime.Seconds()
 				bookProgress := 0.0
 				if totalDuration > 0 {
@@ -276,6 +286,7 @@ func updateAudioProgress() {
 				currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
 				bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
 				fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
+				timeProgressLabel.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
 
 				SaveLibrary()
 
@@ -287,10 +298,12 @@ func updateAudioProgress() {
 	}
 }
 
-func GetSummedDurationUpToIndex(index int) time.Duration {
+func GetSummedDurationUpToIndex() time.Duration {
 	sum := time.Duration(0)
+	book := GetBookmark().book
+	index := GetFileIndexByPath(book, book.CurrentFile.Path)
 	for i := 0; i < index; i++ {
-		sum += library.Audiobooks[i].TotalTime
+		sum += book.Files[i].Length
 	}
 	return sum
 

@@ -120,6 +120,15 @@ func GetBookByTitle(title string) (int, *Audiobook, error) {
 	return -1, nil, fmt.Errorf("no book by that name: %s", title)
 }
 
+func GetFileIndexByPath(book *Audiobook, path string) int {
+	for i, file := range book.Files {
+		if file.Path == path {
+			return i
+		}
+	}
+	return -1
+}
+
 // add an audiobook to the library
 func AddAudiobookToLibrary(book_path string) {
 	fmt.Println("Book path: ", book_path)

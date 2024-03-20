@@ -65,7 +65,7 @@ func loadAndPlayCurrentFile() error {
 
 	global_ctrl = &beep.Ctrl{Streamer: beep.Seq(streamer, beep.Callback(func() {
 		// Callback function to handle end of current file
-		go handleEndOfFile()
+		go loadAndPlayNextFile()
 	})), Paused: true}
 
 	global_volume = &effects.Volume{
@@ -80,20 +80,59 @@ func loadAndPlayCurrentFile() error {
 
 	streamer.Seek(book.GetFileTimeAsPosition())
 	speaker.Play(global_volume)
+	time.Sleep(10 * time.Millisecond)
 
 	return nil
 }
 
-func handleEndOfFile() {
+func SeekAudio(amount int) {
+	streamer := GetStreamer()
+	if streamer.Position()+amount*int(GetFormat().SampleRate) < 0 {
+		streamer.Seek(0)
+	} else if streamer.Position()+amount*int(GetFormat().SampleRate) > streamer.Len() {
+		streamer.Seek(streamer.Len())
+	} else {
+		streamer.Seek(streamer.Position() + amount*int(GetFormat().SampleRate))
+	}
+}
+
+func loadAndPlayNextFile() {
 	book := GetBookmark().book
 	nextFileIndex := findNextFileIndex()
 	if nextFileIndex < len(book.Files) {
+		was_playing := !global_ctrl.Paused
 		book.CurrentFile = &book.Files[nextFileIndex]
-		book.CurrentFileTime = 0
+		book.CurrentFileTime = time.Duration(0)
+		SaveLibrary()
+		time.Sleep(10 * time.Millisecond)
 		loadAndPlayCurrentFile() // Load and play the next file
+		time.Sleep(10 * time.Millisecond)
+		if was_playing {
+			PlayAudio()
+		}
 	} else {
 		// End of book reached, handle accordingly
 		fmt.Println("End of book reached")
+	}
+}
+
+func loadAndPlayPreviousFile() {
+	book := GetBookmark().book
+	previousFileIndex := findPreviousFileIndex()
+	if previousFileIndex >= 0 {
+		was_playing := !global_ctrl.Paused
+		book.CurrentFile = &book.Files[previousFileIndex]
+		book.CurrentFileTime = time.Duration(0)
+		SaveLibrary()
+		time.Sleep(10 * time.Millisecond)
+		loadAndPlayCurrentFile() // Load and play the previous file
+		time.Sleep(10 * time.Millisecond)
+		if was_playing {
+			PlayAudio()
+		}
+	} else {
+		// Beginning of book reached, handle accordingly
+		fmt.Println("Beginning of book reached")
 	}
 }
 
@@ -106,6 +145,16 @@ func findNextFileIndex() int {
 		}
 	}
 	return len(book.Files) // Return length if current file not found, indicating end of book
+}
+
+func findPreviousFileIndex() int {
+	book := GetBookmark().book
+	for i, file := range book.Files {
+		if file == *book.CurrentFile {
+			return i - 1 // Return the index of the previous file
+		}
+	}
+	return -1 // Return -1 if current file not found, indicating beginning of book
 }
 
 // func PlayAudio() {
@@ -151,6 +200,7 @@ func PauseAudio() {
 			// position := global_streamer.Position()
 			book.SetFileTimeFromPosition(global_streamer.Position())
 			SaveLibrary()
+			fmt.Println("Paused at position: ", global_streamer.Position())
 		}
 	}
 }
