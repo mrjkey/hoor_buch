@@ -2,16 +2,27 @@ package audio_manager
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
+var (
+	bookProgressSlider *widget.Slider // Slider for the overall book progress
+	fileProgressSlider *widget.Slider // Slider for the current file progress
+	currentFileLabel   *widget.Label  // Label to display the current file name
+	content            *fyne.Container
+	volumeSlider       *widget.Slider
+	volumeSliderLabel  *widget.Label
+)
+
 func SetupPlayBtn() *widget.Button {
-	playBtn := widget.NewButton("Play", nil) // Temporarily no action
+	playIcon := theme.MediaPlayIcon()
+	playBtn := widget.NewButtonWithIcon("", playIcon, nil)
 	playBtn.OnTapped = func() {
 		go func() {
 			togglePlayPause(playBtn)
@@ -21,38 +32,98 @@ func SetupPlayBtn() *widget.Button {
 }
 
 func togglePlayPause(playBtn *widget.Button) {
+	playIcon := theme.MediaPlayIcon()
+	pauseIcon := theme.MediaPauseIcon()
+
 	if isPlaying {
 		PauseAudio()
-		playBtn.SetText("Play")
+		playBtn.SetIcon(playIcon)
 	} else {
 		PlayAudio()
-		playBtn.SetText("Pause")
+		playBtn.SetIcon(pauseIcon)
 	}
 	isPlaying = !isPlaying
 }
 
+// func SetupAudioPlayerGuiOld() (*fyne.Container, error) {
+// 	playBtn := SetupPlayBtn()
+// 	// button to add an audiobook to the library
+// 	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
+// 		openFileDialog(Window, func(path string) {
+// 			fmt.Println("Path selected: ", path)
+// 			AddAudiobookToLibrary(path)
+// 			DisplayLibrary()
+// 		})
+// 	})
+
+// 	// setup content as a "column" container, which stacks its children vertically
+// 	header := container.NewVBox(
+// 		widget.NewLabel("Hello, Fyne!"),
+// 		playBtn,
+// 		addAudiobookBtn,
+// 		// layout.NewSpacer(),
+// 	)
+
+// 	content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
+// 	// content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
+
+// 	LoadLibrary()
+
+// 	return content, nil
+// }
+
+// SliderToVolume converts a slider position (0-100) to a volume control value.
+func SliderToVolume(sliderPos float64) float64 {
+	if sliderPos <= 0 {
+		// Mute condition, handle accordingly in your application
+		return -100000 // Returning negative infinity to represent muting
+	} else if sliderPos >= 100 {
+		return 0 // Maximum volume
+	} else {
+		// Convert slider position to a dB scale linearly, then convert dB to power ratio
+		db := (sliderPos/100.0)*(maxDB-minDB) + minDB
+		// Assuming the base is 2, convert dB to the power ratio (volume)
+		volume := db / 10.0
+		return volume
+	}
+}
+
+// Update GUI setup to include sliders and current file label
 func SetupAudioPlayerGui() (*fyne.Container, error) {
 	playBtn := SetupPlayBtn()
-	// button to add an audiobook to the library
-	addAudiobookBtn := widget.NewButton("Add Audiobook", func() {
-		openFileDialog(Window, func(path string) {
-			fmt.Println("Path selected: ", path)
-			AddAudiobookToLibrary(path)
-			DisplayLibrary()
-		})
-	})
 
-	// setup content as a "column" container, which stacks its children vertically
-	header := container.NewVBox(
-		widget.NewLabel("Hello, Fyne!"),
+	// Initialize sliders and labels
+	bookProgressSlider = widget.NewSlider(0, 100) // Assuming 100% as the max value for book progress
+	// bookProgressSlider.                  // Make it a progress bar (user cannot move it)
+	fileProgressSlider = widget.NewSlider(0, 100) // Max value will be updated based on the file length
+	currentFileLabel = widget.NewLabel("Current File: None")
+
+	volumeSlider = widget.NewSlider(0, 100)
+	volumeSlider.Value = starting_volume
+	initialstring := fmt.Sprintf("Volume: %.0f", starting_volume)
+	volumeSliderLabel = widget.NewLabel(initialstring)
+
+	volumeSlider.OnChanged = func(value float64) {
+		global_volume.Volume = SliderToVolume(value)
+		volumeSliderLabel.SetText(fmt.Sprintf("Volume: %.0f", value))
+	}
+
+	// Setup audio update goroutine
+	go updateAudioProgress()
+
+	// Setup content with new widgets
+	content = container.NewVBox(
+		volumeSliderLabel,
+		volumeSlider,
+		currentFileLabel,
 		playBtn,
-		addAudiobookBtn,
-		// layout.NewSpacer(),
+		widget.NewLabel("Book Progress:"),
+		bookProgressSlider,
+		widget.NewLabel("File Progress:"),
+		fileProgressSlider,
 	)
 
-	content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
-	// content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
-
+	// Your existing setup logic...
 	LoadLibrary()
 
 	return content, nil
@@ -114,55 +185,47 @@ func DisplayLibrary() {
 	content.Add(bookList)
 }
 
-// func SetupAudioPlayerGui(ctrl *beep.Ctrl) (*fyne.Container, error) {
-//     // Example of changing the Play button with an icon and primary importance
-//     playIcon := theme.MediaPlayIcon()
-//     playBtn := widget.NewButtonWithIcon("Play", playIcon, func() {
-//         go PlayAudio(ctrl)
-//     })
-//     playBtn.Importance = widget.HighImportance // Make it a primary button
+// Goroutine to update sliders and label based on audio progress
+func updateAudioProgress() {
+	for {
+		time.Sleep(time.Second) // Update every second
 
-//     // Pause button with an icon
-//     pauseIcon := theme.MediaPauseIcon()
-//     pauseBtn := widget.NewButtonWithIcon("Pause", pauseIcon, func() {
-//         go PauseAudio(ctrl)
-//     })
+		if GetBookmark().book != nil {
+			// Update book progress slider
+			totalDuration := GetBookmark().book.TotalTime.Seconds()
+			currentDuration := GetBookmark().book.CurrentTime.Seconds()
+			if totalDuration > 0 {
+				bookProgress := (currentDuration / totalDuration) * 100
+				bookProgressSlider.SetValue(bookProgress)
+			}
 
-//     // Stop button
-//     stopIcon := theme.MediaStopIcon()
-//     stopBtn := widget.NewButtonWithIcon("Stop", stopIcon, func() {
-//         go StopAudio(ctrl) // Assuming you have a StopAudio function
-//     })
+			// Update file progress slider
+			if global_streamer != nil {
+				fileDuration := global_streamer.Len()
+				currentPosition := global_streamer.Position()
+				if fileDuration > 0 {
+					fileProgress := (float64(currentPosition) / float64(fileDuration)) * 100
+					fileProgressSlider.SetValue(fileProgress)
+				}
+			}
 
-//     // Adding an audiobook button
-//     addAudiobookIcon := theme.ContentAddIcon()
-//     addAudiobookBtn := widget.NewButtonWithIcon("Add Audiobook", addAudiobookIcon, func() {
-//         openFileDialog(Window, func(path string) {
-//             fmt.Println("Path selected: ", path)
-//             AddAudiobookToLibrary(path)
-//         })
-//     })
+			// Update current file label
+			_, fileName := filepath.Split(GetBookmark().book.CurrentFile)
+			currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
+		}
 
-//     // Adjusting button layout, using a grid for example
-//     buttonLayout := container.NewGridWithColumns(2, playBtn, pauseBtn, stopBtn, addAudiobookBtn)
+	}
+}
 
-//     content := container.NewVBox(
-//         widget.NewLabel("Hello, Fyne!"),
-//         buttonLayout,
-//     )
-
-//     return content, nil
-// }
-
-// func DisplayLibrary() {
-// 	// remove the previous library content
-// 	content.Remove(libraryContent)
-// 	// update the library content
-// 	libraryContent = container.NewVBox()
-// 	for _, book := range library.Audiobooks {
-// 		libraryContent.Add(widget.NewLabel(book.Title))
-// 	}
-
-// 	// add the library content back into the main content
-// 	content.Add(libraryContent)
-// }
+// Example on changing the file slider value manually by the user
+// This should seek within the current playing file accordingly
+func setupFileProgressSlider() {
+	fileProgressSlider.OnChanged = func(value float64) {
+		if global_streamer != nil && GetBookmark().book != nil {
+			fileDuration := global_streamer.Len()
+			newPosition := int(value / 100 * float64(fileDuration))
+			global_streamer.Seek(newPosition)
+			GetBookmark().book.SetFileTimeFromPosition(newPosition)
+		}
+	}
+}

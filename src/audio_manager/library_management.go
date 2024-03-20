@@ -14,7 +14,6 @@ var App fyne.App
 var Window fyne.Window
 var library Library
 var isPlaying bool
-var content *fyne.Container
 var bookList *fyne.Container
 var global_bookmark Bookmark = Bookmark{-1, nil}
 
