@@ -1,7 +1,6 @@
 package audio_manager
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -25,7 +24,7 @@ func (b *Audiobook) GetFileTimeAsPosition() int {
 func (b *Audiobook) SetFileTimeFromPosition(position int) {
 	format := GetFormat()
 	b.CurrentFileTime = time.Duration(position/int(format.SampleRate)) * time.Second
-	fmt.Println("Setting file time: ", b.CurrentFileTime)
+	// fmt.Println("Setting file time: ", b.CurrentFileTime)
 }
 
 type Library struct {
@@ -42,6 +41,7 @@ type AudioFile struct {
 }
 
 type Bookmark struct {
-	index int
-	book  *Audiobook
+	index    int
+	book     *Audiobook
+	gui_init bool
 }

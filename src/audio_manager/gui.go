@@ -13,7 +13,9 @@ import (
 
 var (
 	bookProgressSlider *widget.Slider // Slider for the overall book progress
+	bookProgressLabel  *widget.Label  // Label to display the overall book progress
 	fileProgressSlider *widget.Slider // Slider for the current file progress
+	fileProgressLabel  *widget.Label  // Label to display the current file progress
 	currentFileLabel   *widget.Label  // Label to display the current file name
 	content            *fyne.Container
 	volumeSlider       *widget.Slider
@@ -88,8 +90,10 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 
 	// Initialize sliders and labels
 	bookProgressSlider = widget.NewSlider(0, 100) // Assuming 100% as the max value for book progress
+	bookProgressLabel = widget.NewLabel("Book Progress:")
 	// bookProgressSlider.                  // Make it a progress bar (user cannot move it)
 	fileProgressSlider = widget.NewSlider(0, 100) // Max value will be updated based on the file length
+	fileProgressLabel = widget.NewLabel("File Progress:")
 	currentFileLabel = widget.NewLabel("Current File: None")
 
 	volumeSlider = widget.NewSlider(0, 100)
@@ -119,9 +123,9 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		volumeSlider,
 		currentFileLabel,
 		controlButtons,
-		widget.NewLabel("Book Progress:"),
+		bookProgressLabel,
 		bookProgressSlider,
-		widget.NewLabel("File Progress:"),
+		fileProgressLabel,
 		fileProgressSlider,
 		addAudiobookBtn,
 	)
@@ -237,32 +241,59 @@ func DisplayLibrary() {
 func updateAudioProgress() {
 	for {
 		time.Sleep(time.Second) // Update every second
-
-		if GetBookmark().book != nil {
+		bookmark := GetBookmark()
+		if bookmark.book != nil || !bookmark.gui_init {
+			book := bookmark.book
 			// Update book progress slider
-			totalDuration := GetBookmark().book.TotalTime.Seconds()
-			currentDuration := GetBookmark().book.CurrentTime.Seconds()
-			if totalDuration > 0 {
-				bookProgress := (currentDuration / totalDuration) * 100
-				bookProgressSlider.SetValue(bookProgress)
-			}
-
-			// Update file progress slider
-			if global_streamer != nil {
-				fileDuration := global_streamer.Len()
-				currentPosition := global_streamer.Position()
-				if fileDuration > 0 {
-					fileProgress := (float64(currentPosition) / float64(fileDuration)) * 100
-					fileProgressSlider.SetValue(fileProgress)
+			old_current_file_time := bookmark.book.CurrentFileTime
+			// update the current file time
+			book.SetFileTimeFromPosition(global_streamer.Position())
+			if book.CurrentFileTime > old_current_file_time || !GetBookmark().gui_init {
+				bookmark := GetBookmark()
+				// calculate the book progress, update overall current time
+				current_file_index := GetIndexByBook(book)
+				book.CurrentTime = GetSummedDurationUpToIndex(current_file_index) + book.CurrentFileTime
+				totalDuration := book.TotalTime.Seconds()
+				bookProgress := 0.0
+				if totalDuration > 0 {
+					bookProgress = (book.CurrentTime.Seconds() / totalDuration) * 100
+					bookProgressSlider.SetValue(bookProgress)
 				}
-			}
 
-			// Update current file label
-			_, fileName := filepath.Split(GetBookmark().book.CurrentFile.Path)
-			currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
+				// Update file progress slider
+				fileProgress := 0.0
+				if global_streamer != nil {
+					fileDuration := global_streamer.Len()
+					currentPosition := global_streamer.Position()
+					if fileDuration > 0 {
+						fileProgress = (float64(currentPosition) / float64(fileDuration)) * 100
+						fileProgressSlider.SetValue(fileProgress)
+					}
+				}
+
+				// Update labels
+				_, fileName := filepath.Split(book.CurrentFile.Path)
+				currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
+				bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
+				fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
+
+				SaveLibrary()
+
+				bookmark.gui_init = true
+				// fmt.Println("Ahhhhhhhhh")
+			}
 		}
 
 	}
+}
+
+func GetSummedDurationUpToIndex(index int) time.Duration {
+	sum := time.Duration(0)
+	for i := 0; i < index; i++ {
+		sum += library.Audiobooks[i].TotalTime
+	}
+	return sum
+
 }
 
 // Example on changing the file slider value manually by the user

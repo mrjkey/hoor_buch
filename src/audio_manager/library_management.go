@@ -15,9 +15,9 @@ var Window fyne.Window
 var library Library
 var isPlaying bool
 var bookList *fyne.Container
-var global_bookmark Bookmark = Bookmark{-1, nil}
+var global_bookmark = &Bookmark{-1, nil, true}
 
-func GetBookmark() Bookmark {
+func GetBookmark() *Bookmark {
 	return global_bookmark
 }
 
@@ -79,14 +79,14 @@ func SetBookmarkByTitle(title string) error {
 	if err != nil {
 		return err
 	}
-	global_bookmark = Bookmark{index, book}
+	global_bookmark = &Bookmark{index, book, false}
 	return nil
 }
 
 func SetBookmarkByIndex(index int) error {
 	if index < len(library.Audiobooks) {
 		book := &library.Audiobooks[index]
-		global_bookmark = Bookmark{index, book}
+		global_bookmark = &Bookmark{index, book, false}
 		return nil
 	} else {
 		return fmt.Errorf("provided index is greater than libarary length %d", index)
@@ -98,7 +98,7 @@ func SetBookmarkByBook(book *Audiobook) error {
 	if index == -1 {
 		return fmt.Errorf("no index for book found: %s", book.Title)
 	}
-	global_bookmark = Bookmark{index, book}
+	global_bookmark = &Bookmark{index, book, false}
 	return nil
 }
 
