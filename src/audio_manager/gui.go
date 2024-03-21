@@ -214,6 +214,8 @@ func init_booklist() {
 
 	// Handle selection
 	bookList.OnSelected = func(id widget.ListItemID) {
+		audioProgressMutex.Lock()
+		defer audioProgressMutex.Unlock()
 		pausePlayBtn()
 		time.Sleep(10 * time.Millisecond)
 
