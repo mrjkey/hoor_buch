@@ -24,7 +24,6 @@ func (b *Audiobook) GetFileTimeAsPosition() int {
 func (b *Audiobook) SetFileTimeFromPosition(position int) {
 	format := GetFormat()
 	b.CurrentFileTime = time.Duration(position/int(format.SampleRate)) * time.Second
-	// fmt.Println("Setting file time: ", b.CurrentFileTime)
 }
 
 type Library struct {

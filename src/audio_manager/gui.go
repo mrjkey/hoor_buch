@@ -197,7 +197,7 @@ func init_booklist() {
 			return container.NewVBox(widget.NewSeparator(), label, widget.NewLabel(""))
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
-			book := library.Audiobooks[id]
+			book := &library.Audiobooks[id]
 			container := co.(*fyne.Container)
 			if label, exists := progressLabelMap[id]; exists {
 				label.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))

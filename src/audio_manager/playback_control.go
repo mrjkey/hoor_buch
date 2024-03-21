@@ -158,21 +158,6 @@ func findPreviousFileIndex() int {
 	return -1 // Return -1 if current file not found, indicating beginning of book
 }
 
-// func PlayAudio() {
-// 	ctrl := GetCtrl()
-// 	book := GetBookmark().book
-// 	// speaker.Lock()
-// 	fmt.Println("Playing audio")
-// 	fmt.Println("Seeking to position: ", book.CurrentFileTime)
-// 	streamer := *GetStreamer()
-// 	streamer.Seek(book.GetFileTimeAsPosition())
-// 	// book.GetFileTimeAsInt())
-
-// 	ctrl.Paused = false
-// 	// speaker.Unlock()
-// 	fmt.Println("end of play button function")
-// }
-
 func PlayAudio() {
 	// global_volume.Volume -= 0.5
 	// fmt.Println("Current volume: ", global_volume.Volume)
@@ -183,25 +168,8 @@ func PlayAudio() {
 	global_ctrl.Paused = false
 }
 
-// func PauseAudio() {
-// 	ctrl := GetCtrl()
-// 	book := GetBookmark().book
-// 	streamer := *GetStreamer()
-// 	fmt.Println("Pausing audio")
-// 	ctrl.Paused = true
-// 	book.SetFileTimeFromPosition(streamer.Position())
-// 	SaveLibrary()
-// }
-
 func PauseAudio() {
 	if global_ctrl != nil {
 		global_ctrl.Paused = true
-		if global_streamer != nil {
-			book := GetBookmark().book
-			// position := global_streamer.Position()
-			book.SetFileTimeFromPosition(global_streamer.Position())
-			SaveLibrary()
-			fmt.Println("Paused at position: ", global_streamer.Position())
-		}
 	}
 }
