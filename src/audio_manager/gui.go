@@ -25,7 +25,7 @@ var (
 	bookList           *widget.List
 	playPauseBtn       *widget.Button
 	audioProgressMutex sync.Mutex
-	bookChangeSignal   chan struct{} = make(chan struct{})
+	// bookChangeSignal   chan struct{} = make(chan struct{})
 )
 
 func SetupPlayBtn() *widget.Button {
