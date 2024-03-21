@@ -3,6 +3,7 @@ package audio_manager
 import (
 	"fmt"
 	"path/filepath"
+	"sync"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -23,6 +24,8 @@ var (
 	progressLabelMap   map[int]*widget.Label
 	bookList           *widget.List
 	playPauseBtn       *widget.Button
+	audioProgressMutex sync.Mutex
+	bookChangeSignal   chan struct{} = make(chan struct{})
 )
 
 func SetupPlayBtn() *widget.Button {
@@ -241,51 +244,53 @@ func init_booklist() {
 func updateAudioProgress() {
 	for {
 		time.Sleep(time.Second) // Update every second
+		audioProgressMutex.Lock()
 		bookmark := GetBookmark()
 		if bookmark.book != nil || !bookmark.gui_init {
 			book := bookmark.book
 			// Update book progress slider
 			old_current_file_time := bookmark.book.CurrentFileTime
-			// update the current file time
-			if global_streamer != nil {
+
+			if global_streamer.Position() != 0 {
 				book.SetFileTimeFromPosition(global_streamer.Position())
-				if book.CurrentFileTime > old_current_file_time || !GetBookmark().gui_init {
-					bookmark := GetBookmark()
-					// calculate the book progress, update overall current time
-					book.CurrentTime = GetSummedDurationUpToIndex() + book.CurrentFileTime
-					totalDuration := book.TotalTime.Seconds()
-					bookProgress := 0.0
-					if totalDuration > 0 {
-						bookProgress = (book.CurrentTime.Seconds() / totalDuration) * 100
-						bookProgressSlider.SetValue(bookProgress)
-					}
-
-					// Update file progress slider
-					fileProgress := 0.0
-					if global_streamer != nil {
-						fileDuration := global_streamer.Len()
-						currentPosition := global_streamer.Position()
-						if fileDuration > 0 {
-							fileProgress = (float64(currentPosition) / float64(fileDuration)) * 100
-							fileProgressSlider.SetValue(fileProgress)
-						}
-					}
-
-					// Update labels
-					_, fileName := filepath.Split(book.CurrentFile.Path)
-					currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
-					bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
-					fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
-					// fmt.print
-					progressLabelMap[bookmark.index].SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
-
-					SaveLibrary()
-
-					bookmark.gui_init = true
-				}
 			}
-		}
+			if book.CurrentFileTime > old_current_file_time || !GetBookmark().gui_init {
+				bookmark := GetBookmark()
+				// calculate the book progress, update overall current time
+				book.CurrentTime = GetSummedDurationUpToIndex() + book.CurrentFileTime
+				totalDuration := book.TotalTime.Seconds()
+				bookProgress := 0.0
+				if totalDuration > 0 {
+					bookProgress = (book.CurrentTime.Seconds() / totalDuration) * 100
+					bookProgressSlider.SetValue(bookProgress)
+				}
 
+				// Update file progress slider
+				fileProgress := 0.0
+				if global_streamer != nil {
+					fileDuration := global_streamer.Len()
+					currentPosition := global_streamer.Position()
+					if fileDuration > 0 {
+						fileProgress = (float64(currentPosition) / float64(fileDuration)) * 100
+						fileProgressSlider.SetValue(fileProgress)
+					}
+				}
+
+				// Update labels
+				_, fileName := filepath.Split(book.CurrentFile.Path)
+				currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
+				bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
+				fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
+				// fmt.print
+				progressLabelMap[bookmark.index].SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+
+				SaveLibrary()
+
+				bookmark.gui_init = true
+			}
+
+		}
+		audioProgressMutex.Unlock()
 	}
 }
 

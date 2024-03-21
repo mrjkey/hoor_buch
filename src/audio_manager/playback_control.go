@@ -41,6 +41,8 @@ func SetupAudioPlayer(book *Audiobook) error {
 
 // Load and play from the current file position
 func loadAndPlayCurrentFile() error {
+	audioProgressMutex.Lock()
+	defer audioProgressMutex.Unlock()
 	book := GetBookmark().book
 	// fmt.Println("Loading book title: ", book.Title)
 	if global_ctrl != nil {
