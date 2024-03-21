@@ -1,0 +1,236 @@
+{
+    "audiobooks": [
+        {
+            "title": "The Rook",
+            "author": "Test Author",
+            "total_time": 64006000000000,
+            "current_time": 4684000000000,
+            "current_file": {
+                "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part02.mp3",
+                "Length": 4656000000000
+            },
+            "current_file_time": 21000000000,
+            "path": "D:/Torrents/Books/The Rook",
+            "files": [
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part01.mp3",
+                    "Length": 4663000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part02.mp3",
+                    "Length": 4656000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part03.mp3",
+                    "Length": 4531000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part04.mp3",
+                    "Length": 4652000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part05.mp3",
+                    "Length": 4508000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part06.mp3",
+                    "Length": 4642000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part07.mp3",
+                    "Length": 4683000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part08.mp3",
+                    "Length": 4529000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part09.mp3",
+                    "Length": 4480000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part10.mp3",
+                    "Length": 4695000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part11.mp3",
+                    "Length": 4523000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part12.mp3",
+                    "Length": 4448000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part13.mp3",
+                    "Length": 4567000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\The Rook\\The Rook-Part14.mp3",
+                    "Length": 4429000000000
+                }
+            ]
+        },
+        {
+            "title": "Red Rising Saga 1 - Red Rising 1 of 2",
+            "author": "Test Author",
+            "total_time": 27101000000000,
+            "current_time": 4589000000000,
+            "current_file": {
+                "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\002_REDRISING0101P02.mp3",
+                "Length": 4597000000000
+            },
+            "current_file_time": 195000000000,
+            "path": "D:/Torrents/Books/Red Rising Saga 1 - Red Rising 1 of 2",
+            "files": [
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\001_REDRISING0101P01.mp3",
+                    "Length": 4394000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\002_REDRISING0101P02.mp3",
+                    "Length": 4597000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\003_REDRISING0101P03.mp3",
+                    "Length": 4484000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\004_REDRISING0101P04.mp3",
+                    "Length": 4528000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\005_REDRISING0101P05.mp3",
+                    "Length": 4623000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising Saga 1 - Red Rising 1 of 2\\006_REDRISING0101P06.mp3",
+                    "Length": 4475000000000
+                }
+            ]
+        },
+        {
+            "title": "Red Rising - Sons of Ares Volume 3 - Forbidden Song",
+            "author": "Test Author",
+            "total_time": 13163000000000,
+            "current_time": 45000000000,
+            "current_file": {
+                "Path": "D:\\Torrents\\Books\\Red Rising - Sons of Ares Volume 3 - Forbidden Song\\001_SONSOFARES03P01.mp3",
+                "Length": 4228000000000
+            },
+            "current_file_time": 45000000000,
+            "path": "D:/Torrents/Books/Red Rising - Sons of Ares Volume 3 - Forbidden Song",
+            "files": [
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising - Sons of Ares Volume 3 - Forbidden Song\\001_SONSOFARES03P01.mp3",
+                    "Length": 4228000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising - Sons of Ares Volume 3 - Forbidden Song\\002_SONSOFARES03P02.mp3",
+                    "Length": 4407000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\Red Rising - Sons of Ares Volume 3 - Forbidden Song\\003_SONSOFARES03P03.mp3",
+                    "Length": 4528000000000
+                }
+            ]
+        },
+        {
+            "title": "A Fine Balance",
+            "author": "Test Author",
+            "total_time": 92964000000000,
+            "current_time": 4000000000,
+            "current_file": {
+                "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 01.mp3",
+                "Length": 1487000000000
+            },
+            "current_file_time": 4000000000,
+            "path": "D:/Torrents/Books/A Fine Balance",
+            "files": [
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 01.mp3",
+                    "Length": 1487000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 02.mp3",
+                    "Length": 4363000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 03.mp3",
+                    "Length": 4731000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 04.mp3",
+                    "Length": 3326000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 05.mp3",
+                    "Length": 5506000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 06.mp3",
+                    "Length": 5734000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 07.mp3",
+                    "Length": 4615000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 08.mp3",
+                    "Length": 4645000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 09.mp3",
+                    "Length": 4978000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 10.mp3",
+                    "Length": 5534000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 11.mp3",
+                    "Length": 4103000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 12.mp3",
+                    "Length": 4599000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 13.mp3",
+                    "Length": 4015000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 14.mp3",
+                    "Length": 4350000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 15.mp3",
+                    "Length": 4091000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 16.mp3",
+                    "Length": 4112000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 17.mp3",
+                    "Length": 3708000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 18.mp3",
+                    "Length": 3624000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 19.mp3",
+                    "Length": 4852000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 20.mp3",
+                    "Length": 4801000000000
+                },
+                {
+                    "Path": "D:\\Torrents\\Books\\A Fine Balance\\A Fine Balance 21.mp3",
+                    "Length": 5790000000000
+                }
+            ]
+        }
+    ]
+}
