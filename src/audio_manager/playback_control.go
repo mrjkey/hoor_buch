@@ -42,6 +42,7 @@ func SetupAudioPlayer(book *Audiobook) error {
 // Load and play from the current file position
 func loadAndPlayCurrentFile() error {
 	book := GetBookmark().book
+	// fmt.Println("Loading book title: ", book.Title)
 	if global_ctrl != nil {
 		PauseAudio()
 	}
@@ -76,7 +77,7 @@ func loadAndPlayCurrentFile() error {
 	}
 
 	global_volume.Volume = SliderToVolume(70)
-	fmt.Println("Current volume: ", global_volume.Volume)
+	// fmt.Println("Current volume: ", global_volume.Volume)
 
 	streamer.Seek(book.GetFileTimeAsPosition())
 	speaker.Play(global_volume)
@@ -174,7 +175,7 @@ func findPreviousFileIndex() int {
 
 func PlayAudio() {
 	// global_volume.Volume -= 0.5
-	fmt.Println("Current volume: ", global_volume.Volume)
+	// fmt.Println("Current volume: ", global_volume.Volume)
 	// Ensure audio setup is done before play
 	if global_ctrl == nil {
 		SetupAudioPlayer(GetBookmark().book)

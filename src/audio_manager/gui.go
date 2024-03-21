@@ -20,8 +20,9 @@ var (
 	content            *fyne.Container
 	volumeSlider       *widget.Slider
 	volumeSliderLabel  *widget.Label
-	timeProgressLabels []*widget.Label
+	progressLabelMap   map[int]*widget.Label
 	bookList           *widget.List
+	playPauseBtn       *widget.Button
 )
 
 func SetupPlayBtn() *widget.Button {
@@ -47,6 +48,12 @@ func togglePlayPause(playBtn *widget.Button) {
 		playBtn.SetIcon(pauseIcon)
 	}
 	isPlaying = !isPlaying
+}
+
+func pausePlayBtn() {
+	playIcon := theme.MediaPlayIcon()
+	playPauseBtn.SetIcon(playIcon)
+	isPlaying = false
 }
 
 // SliderToVolume converts a slider position (0-100) to a volume control value.
@@ -90,8 +97,11 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		volumeSliderLabel.SetText(fmt.Sprintf("Volume: %.0f", value))
 	}
 
-	// Use a List widget for selectable books
-	init_booklist()
+	if bookList == nil {
+		progressLabelMap = make(map[widget.ListItemID]*widget.Label)
+		init_booklist()
+	}
+
 	// Setup audio update goroutine
 	go updateAudioProgress()
 
@@ -146,7 +156,7 @@ func SetupControlButtons() *fyne.Container {
 		// Implement the functionality for "Rewind Ten Seconds"
 		SeekAudio(-10)
 	})
-	playPauseBtn := SetupPlayBtn() // Your existing function for play/pause
+	playPauseBtn = SetupPlayBtn() // Your existing function for play/pause
 	fastForwardTenSecondsBtn := widget.NewButtonWithIcon("10 seconds", fastForwardTenSecondsIcon, func() {
 		// Implement the functionality for "Fast Forward Ten Seconds"
 		SeekAudio(10)
@@ -189,23 +199,35 @@ func init_booklist() {
 		func(id widget.ListItemID, co fyne.CanvasObject) {
 			book := library.Audiobooks[id]
 			container := co.(*fyne.Container)
-			label := container.Objects[1].(*widget.Label)
-			timeProgressLabels = append(timeProgressLabels, label)
-			label.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+			if label, exists := progressLabelMap[id]; exists {
+				label.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+			} else {
+				label := container.Objects[1].(*widget.Label)
+				label.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+				progressLabelMap[id] = label
+			}
 		},
 	)
 
 	// Handle selection
 	bookList.OnSelected = func(id widget.ListItemID) {
-		book := library.Audiobooks[id]
-		err := SetupAudioPlayer(&book)
+		pausePlayBtn()
+		time.Sleep(10 * time.Millisecond)
+
+		book := &library.Audiobooks[id]
+		err := SetBookmarkByBook(book)
+		if err != nil {
+			fmt.Println("error setting bookmark")
+			fmt.Println(err)
+		}
+		err = SetupAudioPlayer(book)
 		if err != nil {
 			fmt.Println("error setting up audio player")
 			fmt.Println(err)
 		}
 
-		fmt.Printf("Selected book: %s\n", book.Title)
-		fmt.Printf("gui id: %d\n", id)
+		// fmt.Printf("Selected book: %s\n", book.Title)
+		// fmt.Printf("gui id: %d\n", id)
 	}
 
 	bookmark := GetBookmark()
@@ -254,12 +276,12 @@ func updateAudioProgress() {
 					currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
 					bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
 					fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
-					timeProgressLabels[bookmark.index].SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+					// fmt.print
+					progressLabelMap[bookmark.index].SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
 
 					SaveLibrary()
 
 					bookmark.gui_init = true
-					// fmt.Println("Ahhhhhhhhh")
 				}
 			}
 		}

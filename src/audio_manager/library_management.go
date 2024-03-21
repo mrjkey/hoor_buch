@@ -103,7 +103,7 @@ func SetBookmarkByBook(book *Audiobook) error {
 
 func GetIndexByBook(book *Audiobook) int {
 	for key, value := range library.Audiobooks {
-		if &value == book {
+		if value.Title == book.Title {
 			return key
 		}
 	}

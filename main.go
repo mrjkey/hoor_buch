@@ -16,18 +16,6 @@ func main() {
 	myApp := app.New()
 	myWindow := myApp.NewWindow("Audiobook App")
 	audio_manager.Init(myApp, myWindow)
-	// test out audio stuff
-
-	// filename := "test.mp3"
-	// ctrl, err := audio_manager.SetupAudioPlayer(filename)
-	// if err != nil {
-	// 	fmt.Println("Error setting up audio player")
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	// // start the main loop
-	// fmt.Println("Hello, World!")
-
 	content, err := audio_manager.SetupAudioPlayerGui()
 	if err != nil {
 		fmt.Println("Error setting up audio player gui")
