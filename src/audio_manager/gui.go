@@ -20,7 +20,8 @@ var (
 	content            *fyne.Container
 	volumeSlider       *widget.Slider
 	volumeSliderLabel  *widget.Label
-	timeProgressLabel  *widget.Label
+	timeProgressLabels []*widget.Label
+	bookList           *widget.List
 )
 
 func SetupPlayBtn() *widget.Button {
@@ -48,26 +49,6 @@ func togglePlayPause(playBtn *widget.Button) {
 	isPlaying = !isPlaying
 }
 
-// func SetupAudioPlayerGuiOld() (*fyne.Container, error) {
-// 	playBtn := SetupPlayBtn()
-// 	// button to add an audiobook to the library
-
-// 	// setup content as a "column" container, which stacks its children vertically
-// 	header := container.NewVBox(
-// 		widget.NewLabel("Hello, Fyne!"),
-// 		playBtn,
-// 		addAudiobookBtn,
-// 		// layout.NewSpacer(),
-// 	)
-
-// 	content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
-// 	// content = container.New(layout.NewBorderLayout(header, nil, nil, nil), header)
-
-// 	LoadLibrary()
-
-// 	return content, nil
-// }
-
 // SliderToVolume converts a slider position (0-100) to a volume control value.
 func SliderToVolume(sliderPos float64) float64 {
 	if sliderPos <= 0 {
@@ -86,6 +67,8 @@ func SliderToVolume(sliderPos float64) float64 {
 
 // Update GUI setup to include sliders and current file label
 func SetupAudioPlayerGui() (*fyne.Container, error) {
+	LoadLibrary()
+
 	// playBtn := SetupPlayBtn()
 	controlButtons := SetupControlButtons()
 
@@ -107,6 +90,8 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		volumeSliderLabel.SetText(fmt.Sprintf("Volume: %.0f", value))
 	}
 
+	// Use a List widget for selectable books
+	init_booklist()
 	// Setup audio update goroutine
 	go updateAudioProgress()
 
@@ -114,12 +99,11 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		openFileDialog(Window, func(path string) {
 			fmt.Println("Path selected: ", path)
 			AddAudiobookToLibrary(path)
-			DisplayLibrary()
+			bookList.Refresh()
 		})
 	})
 
-	// Setup content with new widgets
-	content = container.NewVBox(
+	header := container.NewVBox(
 		volumeSliderLabel,
 		volumeSlider,
 		currentFileLabel,
@@ -131,8 +115,8 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		addAudiobookBtn,
 	)
 
-	// Your existing setup logic...
-	LoadLibrary()
+	// Setup content with new widgets
+	content = container.NewBorder(header, nil, nil, nil, bookList)
 
 	return content, nil
 }
@@ -192,37 +176,22 @@ func SetupControlButtons() *fyne.Container {
 	return controlButtons
 }
 
-func DisplayLibrary() {
-	// Remove the previous library content
-	content.Remove(bookList)
-
-	// Use a List widget for selectable books
-	bookList := widget.NewList(
+func init_booklist() {
+	bookList = widget.NewList(
 		func() int {
 			return len(library.Audiobooks)
 		},
 		func() fyne.CanvasObject {
 			label := widget.NewLabel("")
-			slider := widget.NewSlider(0, 1) // Initial min and max values; adjust based on actual audiobook durations
-			slider.Step = 1                  // Set step value to 1 for fine-grained control, adjust as needed
-			return container.NewVBox(label, slider)
+			// Add spacers above and below the label to increase the item's height.
+			return container.NewVBox(widget.NewSeparator(), label, widget.NewLabel(""))
 		},
 		func(id widget.ListItemID, co fyne.CanvasObject) {
 			book := library.Audiobooks[id]
 			container := co.(*fyne.Container)
-			timeProgressLabel = container.Objects[0].(*widget.Label)
-			slider := container.Objects[1].(*widget.Slider)
-
-			timeProgressLabel.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
-			slider.Min = 0
-			slider.Max = book.TotalTime.Seconds()
-			slider.Value = book.CurrentTime.Seconds()
-			slider.OnChanged = func(value float64) {
-				// Update the book's current time based on slider value
-				// You'll need to implement this to actually seek in the audio playback
-				book.CurrentTime = time.Duration(value) * time.Second
-			}
-			slider.Refresh()
+			label := container.Objects[1].(*widget.Label)
+			timeProgressLabels = append(timeProgressLabels, label)
+			label.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
 		},
 	)
 
@@ -244,8 +213,6 @@ func DisplayLibrary() {
 		bookList.Select(bookmark.index)
 	}
 
-	// Add the library content back into the main content
-	content.Add(bookList)
 }
 
 // Goroutine to update sliders and label based on audio progress
@@ -258,40 +225,42 @@ func updateAudioProgress() {
 			// Update book progress slider
 			old_current_file_time := bookmark.book.CurrentFileTime
 			// update the current file time
-			book.SetFileTimeFromPosition(global_streamer.Position())
-			if book.CurrentFileTime > old_current_file_time || !GetBookmark().gui_init {
-				bookmark := GetBookmark()
-				// calculate the book progress, update overall current time
-				book.CurrentTime = GetSummedDurationUpToIndex() + book.CurrentFileTime
-				totalDuration := book.TotalTime.Seconds()
-				bookProgress := 0.0
-				if totalDuration > 0 {
-					bookProgress = (book.CurrentTime.Seconds() / totalDuration) * 100
-					bookProgressSlider.SetValue(bookProgress)
-				}
-
-				// Update file progress slider
-				fileProgress := 0.0
-				if global_streamer != nil {
-					fileDuration := global_streamer.Len()
-					currentPosition := global_streamer.Position()
-					if fileDuration > 0 {
-						fileProgress = (float64(currentPosition) / float64(fileDuration)) * 100
-						fileProgressSlider.SetValue(fileProgress)
+			if global_streamer != nil {
+				book.SetFileTimeFromPosition(global_streamer.Position())
+				if book.CurrentFileTime > old_current_file_time || !GetBookmark().gui_init {
+					bookmark := GetBookmark()
+					// calculate the book progress, update overall current time
+					book.CurrentTime = GetSummedDurationUpToIndex() + book.CurrentFileTime
+					totalDuration := book.TotalTime.Seconds()
+					bookProgress := 0.0
+					if totalDuration > 0 {
+						bookProgress = (book.CurrentTime.Seconds() / totalDuration) * 100
+						bookProgressSlider.SetValue(bookProgress)
 					}
+
+					// Update file progress slider
+					fileProgress := 0.0
+					if global_streamer != nil {
+						fileDuration := global_streamer.Len()
+						currentPosition := global_streamer.Position()
+						if fileDuration > 0 {
+							fileProgress = (float64(currentPosition) / float64(fileDuration)) * 100
+							fileProgressSlider.SetValue(fileProgress)
+						}
+					}
+
+					// Update labels
+					_, fileName := filepath.Split(book.CurrentFile.Path)
+					currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
+					bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
+					fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
+					timeProgressLabels[bookmark.index].SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
+
+					SaveLibrary()
+
+					bookmark.gui_init = true
+					// fmt.Println("Ahhhhhhhhh")
 				}
-
-				// Update labels
-				_, fileName := filepath.Split(book.CurrentFile.Path)
-				currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
-				bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
-				fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
-				timeProgressLabel.SetText(fmt.Sprintf("%s\n%s", book.Title, getProgressString(book.CurrentTime, book.TotalTime)))
-
-				SaveLibrary()
-
-				bookmark.gui_init = true
-				// fmt.Println("Ahhhhhhhhh")
 			}
 		}
 

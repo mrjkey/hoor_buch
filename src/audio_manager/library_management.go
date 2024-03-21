@@ -14,7 +14,6 @@ var App fyne.App
 var Window fyne.Window
 var library Library
 var isPlaying bool
-var bookList *fyne.Container
 var global_bookmark = &Bookmark{-1, nil, true}
 
 func GetBookmark() *Bookmark {
@@ -39,7 +38,7 @@ func LoadLibrary() {
 	if err != nil {
 		return
 	}
-	fmt.Println("Library: ", library)
+	// fmt.Println("Library: ", library)
 
 	if global_bookmark.book == nil {
 		// if the size of the library is greater than 0, set the current book to the first book in the library
@@ -48,8 +47,8 @@ func LoadLibrary() {
 		}
 	}
 
-	// display the library
-	DisplayLibrary()
+	// // display the library
+	// DisplayLibrary()
 
 }
 
