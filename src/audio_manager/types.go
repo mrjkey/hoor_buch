@@ -69,3 +69,28 @@ type Bookmark struct {
 	book     *Audiobook
 	gui_init bool
 }
+
+type ServerLibrary struct {
+	Audiobooks []ServerAudiobook `json:"audiobooks"`
+	Clients    []ClientInfo      `json:"clients"`
+}
+
+type ClientInfo struct {
+	ipv4 string
+	ipv6 string
+	id   string
+}
+
+type ServerAudiobook struct {
+	Title     string `json:"title"`
+	Author    string `json:"author"`
+	TotalTime int    `json:"total_time"`
+	Files     []struct {
+		Filename string `json:"filename"`
+		Length   int    `json:"length"`
+	} `json:"files"`
+	CurrentTime     int `json:"current_time"`
+	CurrentFile     int `json:"current_file"`
+	CurrentFileTime int `json:"current_file_time"`
+	hostClientId    string
+}

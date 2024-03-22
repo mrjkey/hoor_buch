@@ -298,7 +298,6 @@ func updateAudioProgress() {
 
 				bookmark.gui_init = true
 			}
-
 		}
 		audioProgressMutex.Unlock()
 	}

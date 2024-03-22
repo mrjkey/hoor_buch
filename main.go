@@ -3,10 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
-	"net/http"
-	"os"
-	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -48,7 +44,7 @@ func getMode() bool {
 	case "server":
 		// Start the application in server mode
 		fmt.Println("Starting server...")
-		startServer() // Assuming startServer is a function that starts the HTTP server
+		audio_manager.StartServer() // Assuming startServer is a function that starts the HTTP server
 		return false
 	case "fetch":
 		if *serverURL == "" {
@@ -57,7 +53,7 @@ func getMode() bool {
 		}
 		// Fetch the library data from the server
 		fmt.Printf("Fetching library from %s...\n", *serverURL)
-		err := fetchLibrary(*serverURL) // Assuming fetchLibrary is a function to fetch data
+		err := audio_manager.FetchLibrary(*serverURL) // Assuming fetchLibrary is a function to fetch data
 		if err != nil {
 			fmt.Printf("Error fetching library: %v\n", err)
 		}
@@ -69,7 +65,7 @@ func getMode() bool {
 		}
 		// Update the server with local library data
 		fmt.Printf("Updating library on %s with data from %s...\n", *serverURL, *libraryPath)
-		err := updateLibrary(*serverURL, *libraryPath) // Assuming updateLibrary is a function to send data
+		err := audio_manager.UpdateLibrary(*serverURL, *libraryPath) // Assuming updateLibrary is a function to send data
 		if err != nil {
 			fmt.Printf("Error updating library: %v\n", err)
 		}
@@ -78,72 +74,4 @@ func getMode() bool {
 		fmt.Println("Starting GUI mode as no flags were provided..")
 		return true
 	}
-}
-
-func ensureURLScheme(url string) string {
-	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
-		url = "http://" + url // Default to http if no scheme is provided
-	}
-	return url
-}
-
-func startServer() {
-	http.HandleFunc("/library", libraryHandler)
-	http.ListenAndServe(":8080", nil)
-}
-
-func libraryHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		// Serve the current state of library.json
-		http.ServeFile(w, r, "library.json")
-		fmt.Println("Served library.json")
-	case "POST":
-		// Update library.json with the data from the request
-		outFile, err := os.Create("library.json")
-		if err != nil {
-			http.Error(w, "Failed to open library.json for writing", http.StatusInternalServerError)
-			return
-		}
-		defer outFile.Close()
-		_, err = io.Copy(outFile, r.Body)
-		if err != nil {
-			http.Error(w, "Failed to write to library.json", http.StatusInternalServerError)
-			return
-		}
-		fmt.Println("Updated library.json")
-	default:
-		http.Error(w, "Unsupported HTTP method", http.StatusBadRequest)
-	}
-}
-
-func fetchLibrary(serverURL string) error {
-	serverURL = ensureURLScheme(serverURL)
-	resp, err := http.Get(serverURL + "/library")
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Write the fetched content to library.json
-	outFile, err := os.Create("library.json")
-	if err != nil {
-		return err
-	}
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, resp.Body)
-	return err
-}
-
-func updateLibrary(serverURL string, libraryPath string) error {
-	libraryFile, err := os.Open(libraryPath)
-	if err != nil {
-		return err
-	}
-	defer libraryFile.Close()
-
-	serverURL = ensureURLScheme(serverURL)
-	_, err = http.Post(serverURL+"/library", "application/json", libraryFile)
-	return err
 }
