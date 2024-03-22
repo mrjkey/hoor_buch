@@ -57,7 +57,8 @@ func listAudioFilesInDirectory(directory string) ([]AudioFile, error) {
 
 		switch filepath.Ext(path) {
 		case ".mp3", ".wav":
-			audioFiles = append(audioFiles, AudioFile{Path: path})
+			filename := filepath.Base(path)
+			audioFiles = append(audioFiles, AudioFile{Filename: filename})
 			// fmt.Println("Audio File: ", path)
 		default:
 			// fmt.Println("File is not an audio file: ", path)
@@ -90,8 +91,12 @@ func openFileDialog(window fyne.Window, callback func(string)) {
 		callback(uri.Path())
 	}, window)
 	//	fileDialog.SetFilter(fileFilter)
-	defaultPath := "D:\\Torrents\\Books"
-	convertedPath := storage.NewFileURI(defaultPath)
+
+	basePath := "."
+	if library.BaseFilePath != "" {
+		basePath = library.BaseFilePath
+	}
+	convertedPath := storage.NewFileURI(basePath)
 
 	listablePath, err := storage.ListerForURI(convertedPath)
 	if err != nil {

@@ -38,7 +38,12 @@ func LoadLibrary() {
 	if err != nil {
 		return
 	}
-	// fmt.Println("Library: ", library)
+
+	if library.BaseFilePath == "" {
+		library.BaseFilePath, _ = filepath.Abs(".")
+	}
+
+	ensureReferences()
 
 	if global_bookmark.book == nil {
 		// if the size of the library is greater than 0, set the current book to the first book in the library
@@ -47,12 +52,10 @@ func LoadLibrary() {
 		}
 	}
 
-	// // display the library
-	// DisplayLibrary()
-
 }
 
 func SaveLibrary() error {
+	fmt.Println("library base file path: ", library.BaseFilePath)
 	// save the library to a json file
 	data, err := json.MarshalIndent(library, "", "    ")
 	if err != nil {
@@ -119,9 +122,9 @@ func GetBookByTitle(title string) (int, *Audiobook, error) {
 	return -1, nil, fmt.Errorf("no book by that name: %s", title)
 }
 
-func GetFileIndexByPath(book *Audiobook, path string) int {
+func GetFileIndexByName(book *Audiobook, name string) int {
 	for i, file := range book.Files {
-		if file.Path == path {
+		if file.Filename == name {
 			return i
 		}
 	}
@@ -130,11 +133,14 @@ func GetFileIndexByPath(book *Audiobook, path string) int {
 
 // add an audiobook to the library
 func AddAudiobookToLibrary(book_path string) {
-	fmt.Println("Book path: ", book_path)
 	prev_book := BookAlreadyInLibrary(book_path)
 	if prev_book != nil {
 		fmt.Println("Book already in library")
 	}
+	audiobook := Audiobook{}
+	audiobook.library = &library
+	audiobook.Title = filepath.Base(book_path)
+	audiobook.Author = "Test Author"
 
 	// get list of all audio files in the directory
 	audioFiles, err := listAudioFilesInDirectory(book_path)
@@ -143,55 +149,47 @@ func AddAudiobookToLibrary(book_path string) {
 		return
 	}
 
-	filePaths := make([]string, len(audioFiles))
-	for i, file := range audioFiles {
-		filePaths[i] = file.Path
-		fmt.Println("File: ", file.Path)
-	}
-
-	// get the title to be the name of the directory
-	title := filepath.Base(book_path)
-
-	// get the author
-	author := "Test Author"
-
 	// get the length in seconds of the audiobook by adding up the length of all the audio files
 	length := 0
 	for key, file := range audioFiles {
-		duration, _ := getAudioFileDuration(file.Path)
+		file.book = &audiobook
+		duration, _ := getAudioFileDuration(file.GetFilePath())
 		fmt.Println("Duration: ", duration)
 		audioFiles[key].Length = time.Duration(duration) * time.Second
 		length += int(duration)
 	}
-
-	// convert length to time.Duration
-	lengthDuration := time.Duration(length) * time.Second
-
-	// add the audiobook to the library
-	audiobook := Audiobook{
-		Title:           title,
-		Author:          author,
-		TotalTime:       lengthDuration,
-		CurrentTime:     0,
-		CurrentFile:     &audioFiles[0],
-		CurrentFileTime: 0,
-		Path:            book_path,
-		Files:           audioFiles,
-	}
+	audiobook.Files = audioFiles
+	audiobook.TotalTime = time.Duration(length) * time.Second
+	audiobook.CurrentTime = 0
+	audiobook.CurrentFile = &audioFiles[0]
+	audiobook.CurrentFileTime = 0
 
 	if prev_book != nil {
 		*prev_book = audiobook
 	} else {
 		library.AddAudiobook(audiobook)
+		ensureReferences()
 	}
 
-	// save the library
 	SaveLibrary()
+}
+
+func ensureReferences() {
+	// setup references in the library
+	for i := range library.Audiobooks {
+		library.Audiobooks[i].library = &library
+		for j := range library.Audiobooks[i].Files {
+			library.Audiobooks[i].Files[j].book = &library.Audiobooks[i]
+			if library.Audiobooks[i].CurrentFile.Filename == library.Audiobooks[i].Files[j].Filename {
+				library.Audiobooks[i].CurrentFile = &library.Audiobooks[i].Files[j]
+			}
+		}
+	}
 }
 
 func BookAlreadyInLibrary(book_path string) *Audiobook {
 	for i, book := range library.Audiobooks {
-		if book.Path == book_path {
+		if book.GetBookPath() == book_path {
 			return &library.Audiobooks[i]
 		}
 	}

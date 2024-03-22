@@ -1,6 +1,8 @@
 package audio_manager
 
 import (
+	"fmt"
+	"path/filepath"
 	"time"
 )
 
@@ -12,8 +14,8 @@ type Audiobook struct {
 	CurrentTime     time.Duration `json:"current_time"`      // current position in the audiobook in seconds
 	CurrentFile     *AudioFile    `json:"current_file"`      // index of the current file being played
 	CurrentFileTime time.Duration `json:"current_file_time"` // current position in the current file in seconds
-	Path            string        `json:"path"`              // path to the directory containing the audiobook
 	Files           []AudioFile   `json:"files"`             // list of audio files in the audiobook
+	library         *Library
 }
 
 func (b *Audiobook) GetFileTimeAsPosition() int {
@@ -26,8 +28,22 @@ func (b *Audiobook) SetFileTimeFromPosition(position int) {
 	b.CurrentFileTime = time.Duration(position/int(format.SampleRate)) * time.Second
 }
 
+func (b *Audiobook) GetBookPath() string {
+	if b == nil {
+		fmt.Println("Audiobook is nil")
+		panic("Audiobook is nil")
+	}
+	if b.library == nil {
+		fmt.Println("Library is nil")
+		panic("Library is nil")
+	}
+	fmt.Println("BaseFilePath: ", b.library.BaseFilePath)
+	return filepath.Join(b.library.BaseFilePath, b.Title)
+}
+
 type Library struct {
-	Audiobooks []Audiobook `json:"audiobooks"`
+	BaseFilePath string      `json:"base_file_path"`
+	Audiobooks   []Audiobook `json:"audiobooks"`
 }
 
 func (l *Library) AddAudiobook(book Audiobook) {
@@ -35,8 +51,17 @@ func (l *Library) AddAudiobook(book Audiobook) {
 }
 
 type AudioFile struct {
-	Path   string
-	Length time.Duration
+	Filename string
+	Length   time.Duration
+	book     *Audiobook
+}
+
+func (f *AudioFile) GetFilePath() string {
+	if f.book == nil {
+		fmt.Println("Book is nil")
+		panic("Book is nil")
+	}
+	return filepath.Join(f.book.GetBookPath(), f.Filename)
 }
 
 type Bookmark struct {

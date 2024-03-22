@@ -19,6 +19,19 @@
           "ignoreFailures": true
         }
       ]
+    },
+    {
+      "name": "Go: Debug",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      // "port": 2345,
+      // "host": "127.0.0.1",
+      "program": "${workspaceFolder}/main.go",
+      "args": [],
+      "env": {},
+      "cwd": "${workspaceFolder}",
+      "showLog": true
     }
   ]
 }

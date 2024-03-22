@@ -47,7 +47,7 @@ func loadAndPlayCurrentFile() error {
 		PauseAudio()
 	}
 
-	file, err := os.Open(book.CurrentFile.Path)
+	file, err := os.Open(book.CurrentFile.GetFilePath())
 	if err != nil {
 		return err
 	}

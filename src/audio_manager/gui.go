@@ -116,6 +116,14 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		})
 	})
 
+	addLibraryPathBtn := widget.NewButton("Add Library Path", func() {
+		openFileDialog(Window, func(path string) {
+			fmt.Println("Path selected: ", path)
+			library.BaseFilePath, _ = filepath.Abs(path)
+			SaveLibrary()
+		})
+	})
+
 	header := container.NewVBox(
 		volumeSliderLabel,
 		volumeSlider,
@@ -125,6 +133,7 @@ func SetupAudioPlayerGui() (*fyne.Container, error) {
 		bookProgressSlider,
 		fileProgressLabel,
 		fileProgressSlider,
+		addLibraryPathBtn,
 		addAudiobookBtn,
 	)
 
@@ -279,8 +288,7 @@ func updateAudioProgress() {
 				}
 
 				// Update labels
-				_, fileName := filepath.Split(book.CurrentFile.Path)
-				currentFileLabel.SetText(fmt.Sprintf("Current File: %s", fileName))
+				currentFileLabel.SetText(fmt.Sprintf("Current File: %s", book.CurrentFile.Filename))
 				bookProgressLabel.SetText(fmt.Sprintf("Book Progress: %.2f%%", bookProgress))
 				fileProgressLabel.SetText(fmt.Sprintf("File Progress: %.2f%%", fileProgress))
 				// fmt.print
@@ -299,7 +307,7 @@ func updateAudioProgress() {
 func GetSummedDurationUpToIndex() time.Duration {
 	sum := time.Duration(0)
 	book := GetBookmark().book
-	index := GetFileIndexByPath(book, book.CurrentFile.Path)
+	index := GetFileIndexByName(book, book.CurrentFile.Filename)
 	for i := 0; i < index; i++ {
 		sum += book.Files[i].Length
 	}
