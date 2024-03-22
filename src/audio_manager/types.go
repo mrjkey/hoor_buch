@@ -76,9 +76,8 @@ type ServerLibrary struct {
 }
 
 type ClientInfo struct {
-	ipv4 string
-	ipv6 string
-	id   string
+	Address string `json:"address"`
+	Id      string `json:"id"`
 }
 
 type ServerAudiobook struct {
