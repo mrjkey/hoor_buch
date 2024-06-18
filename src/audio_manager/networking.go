@@ -1,9 +1,11 @@
 package audio_manager
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -17,10 +19,7 @@ var (
 func LoadServerLibrary() error {
 	// check if the server libarary directory exists, i.e. ../hb_server_files
 	// if it does not exist, create the directory
-	_, err := os.Stat(library.BaseFilePath)
-	if os.IsNotExist(err) {
-		os.Mkdir(library.BaseFilePath, 0755)
-	}
+	CreateDirectory(library.BaseFilePath)
 
 	// load the library from a json file
 	result := LoadLibrary()
@@ -123,10 +122,7 @@ func FetchLibrary(serverURL string) error {
 	serverURL = EnsureURLScheme(serverURL)
 
 	// check if the client directory exists, i.e. ../hb_client_files
-	_, err := os.Stat(library.BaseFilePath)
-	if os.IsNotExist(err) {
-		os.Mkdir(library.BaseFilePath, 0755)
-	}
+	CreateDirectory(library.BaseFilePath)
 
 	// Fetch the library data from the server
 	resp, err := http.Get(serverURL + "/library")
@@ -150,8 +146,84 @@ func UpdateLibrary(serverURL string, libraryPath string) error {
 	defer libraryFile.Close()
 
 	serverURL = EnsureURLScheme(serverURL)
-	_, err = http.Post(serverURL+"/library", "application/json", libraryFile)
-	return err
+	resp, err := http.Post(serverURL+"/library", "application/json", libraryFile)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to update library, server returned status: %v", resp.Status)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	bodyString := string(bodyBytes)
+	if bodyString == "No missing files" {
+		fmt.Println("No missing files to upload")
+		return nil
+	}
+
+	var missingFiles []MissingFile
+	if err := json.NewDecoder(resp.Body).Decode(&missingFiles); err != nil {
+		return err
+	}
+
+	for _, missingFile := range missingFiles {
+		if err := uploadFile(serverURL, missingFile); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func uploadFile(serverURL string, missingFile MissingFile) error {
+	filePath := filepath.Join(library.BaseFilePath, missingFile.AudiobookName, missingFile.Filename)
+	file, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to open file %s: %v", filePath, err)
+	}
+	defer file.Close()
+
+	var b bytes.Buffer
+	writer := multipart.NewWriter(&b)
+	part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+	if err != nil {
+		return fmt.Errorf("failed to create form file: %v", err)
+	}
+	if _, err := io.Copy(part, file); err != nil {
+		return fmt.Errorf("failed to copy file: %v", err)
+	}
+	if err := writer.WriteField("audiobookName", missingFile.AudiobookName); err != nil {
+		return fmt.Errorf("failed to write field: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		return fmt.Errorf("failed to close writer: %v", err)
+	}
+
+	req, err := http.NewRequest("POST", serverURL+"/upload", &b)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to upload file: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to upload file, server returned status: %v, message: %s", resp.Status, string(bodyBytes))
+	}
+
+	fmt.Printf("Uploaded file: %s/%s\n", missingFile.AudiobookName, missingFile.Filename)
+	return nil
 }
 
 func UploadHandler(w http.ResponseWriter, r *http.Request) {
@@ -180,6 +252,8 @@ func UploadHandler(w http.ResponseWriter, r *http.Request) {
 		defer file.Close()
 
 		dstPath := filepath.Join(library.BaseFilePath, audiobookName)
+		// Create the audiobook directory if it does not exist
+		CreateDirectory(dstPath)
 		dstPath = filepath.Join(dstPath, handler.Filename)
 		// Create a new file in the destination path
 		dst, err := os.Create(dstPath)

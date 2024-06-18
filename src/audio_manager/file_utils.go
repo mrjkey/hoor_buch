@@ -137,3 +137,11 @@ func CopyFile(src, dst string) error {
 
 	return nil
 }
+
+func CreateDirectory(path string) error {
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		os.Mkdir(path, 0755)
+	}
+	return nil
+}
