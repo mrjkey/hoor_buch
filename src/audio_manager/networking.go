@@ -141,6 +141,7 @@ func FetchLibrary(serverURL string) error {
 func UpdateLibrary(serverURL string, libraryPath string) error {
 	libraryFile, err := os.Open(libraryPath)
 	if err != nil {
+		fmt.Println("Failed to open library file")
 		return err
 	}
 	defer libraryFile.Close()
@@ -148,16 +149,19 @@ func UpdateLibrary(serverURL string, libraryPath string) error {
 	serverURL = EnsureURLScheme(serverURL)
 	resp, err := http.Post(serverURL+"/library", "application/json", libraryFile)
 	if err != nil {
+		fmt.Println("Failed post request to update library")
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Failed to update library, server returned status: ", resp.Status)
 		return fmt.Errorf("failed to update library, server returned status: %v", resp.Status)
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
+		fmt.Println("Failed to read response body")
 		return err
 	}
 
@@ -168,12 +172,14 @@ func UpdateLibrary(serverURL string, libraryPath string) error {
 	}
 
 	var missingFiles []MissingFile
-	if err := json.NewDecoder(resp.Body).Decode(&missingFiles); err != nil {
+	if err := json.Unmarshal(bodyBytes, &missingFiles); err != nil {
+		fmt.Println("Failed to decode missing files")
 		return err
 	}
 
 	for _, missingFile := range missingFiles {
 		if err := uploadFile(serverURL, missingFile); err != nil {
+			fmt.Println("Failed to upload file: ", missingFile.Filename)
 			return err
 		}
 	}
