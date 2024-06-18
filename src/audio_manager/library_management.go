@@ -1,10 +1,13 @@
 package audio_manager
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -25,22 +28,69 @@ func Init(main_app fyne.App, main_window fyne.Window) {
 	Window = main_window
 }
 
-func LoadLibrary() {
-	// load the library from a json file
-	file, err := os.Open("library.json")
+func SetLibraryPath(path string) {
+	library.BaseFilePath = path
+}
+
+func GetLibraryFilePath() string {
+	return library.BaseFilePath + "/library.json"
+}
+
+func ReloadLibraryWithNewPath(newPath string) error {
+	// Load the library from the file
+	result := LoadLibrary()
+	if !result {
+		fmt.Println("Failed to load library")
+		return fmt.Errorf("failed to load library")
+	}
+
+	// Update the base file path to the current base path
+	SetLibraryPath(newPath)
+
+	// Save the library to the file
+	err := SaveLibrary()
+	return err
+}
+
+func CopyResponseToFile(body io.Reader) error {
+	// Write the fetched content to the library file
+	outFile, err := os.Create(GetLibraryFilePath())
 	if err != nil {
-		return
+		return err
+	}
+	defer outFile.Close()
+	_, err = io.Copy(outFile, body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func LoadLibrary() bool {
+	// load the library from a json file
+	// basepath must be set before calling this function
+	file, err := os.Open(GetLibraryFilePath())
+	if err != nil {
+		// if the library can't be loaded, ask the user if a new file should be created
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Println("Library file not found, would you like to create a new library file? (y/n)")
+		text, _ := reader.ReadString('\n')
+		text = strings.TrimSpace(text)
+
+		if strings.ToLower(text) == "y" {
+			fmt.Println("Creating new library file")
+			library = Library{BaseFilePath: library.BaseFilePath}
+			SaveLibrary()
+			return true
+		}
+		return false
 	}
 	defer file.Close()
 
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&library)
 	if err != nil {
-		return
-	}
-
-	if library.BaseFilePath == "" {
-		library.BaseFilePath, _ = filepath.Abs(".")
+		return false
 	}
 
 	ensureReferences()
@@ -51,7 +101,7 @@ func LoadLibrary() {
 			_ = SetBookmarkByIndex(0)
 		}
 	}
-
+	return true
 }
 
 func SaveLibrary() error {
@@ -62,7 +112,7 @@ func SaveLibrary() error {
 		return fmt.Errorf("error marshalling library to json: %w", err)
 	}
 
-	file, err := os.Create("library.json")
+	file, err := os.Create(GetLibraryFilePath())
 	if err != nil {
 		return fmt.Errorf("error creating file: %w", err)
 	}
@@ -137,6 +187,14 @@ func AddAudiobookToLibrary(book_path string) {
 	if prev_book != nil {
 		fmt.Println("Book already in library")
 	}
+
+	// create a directory to copy the book into
+	directory := filepath.Join(library.BaseFilePath, filepath.Base(book_path))
+	_, err := os.Stat(directory)
+	if os.IsNotExist(err) {
+		os.Mkdir(directory, 0755)
+	}
+
 	audiobook := Audiobook{}
 	audiobook.library = &library
 	audiobook.Title = filepath.Base(book_path)
@@ -144,6 +202,21 @@ func AddAudiobookToLibrary(book_path string) {
 
 	// get list of all audio files in the directory
 	audioFiles, err := listAudioFilesInDirectory(book_path)
+	if err != nil {
+		fmt.Println("Error getting audio files")
+		return
+	}
+
+	// copy the audio files to the directory if they are not already there
+	for _, file := range audioFiles {
+		_, err := os.Stat(filepath.Join(directory, file.Filename))
+		if os.IsNotExist(err) {
+			CopyFile(filepath.Join(book_path, file.Filename), filepath.Join(directory, file.Filename))
+		}
+	}
+
+	// get list of all audio files in the directory
+	audioFiles, err = listAudioFilesInDirectory(directory)
 	if err != nil {
 		fmt.Println("Error getting audio files")
 		return
@@ -194,4 +267,17 @@ func BookAlreadyInLibrary(book_path string) *Audiobook {
 		}
 	}
 	return nil
+}
+
+func CheckMissingAudioFiles() []MissingFile {
+	var missingFiles []MissingFile
+
+	for _, audiobook := range library.Audiobooks {
+		for _, file := range audiobook.Files {
+			if _, err := os.Stat(file.GetFilePath()); os.IsNotExist(err) {
+				missingFiles = append(missingFiles, MissingFile{audiobook.Title, file.Filename})
+			}
+		}
+	}
+	return missingFiles
 }

@@ -93,3 +93,8 @@ type ServerAudiobook struct {
 	CurrentFileTime int `json:"current_file_time"`
 	hostClientId    string
 }
+
+type MissingFile struct {
+	AudiobookName string `json:"audiobook_name"`
+	Filename      string `json:"filename"`
+}

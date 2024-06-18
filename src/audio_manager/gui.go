@@ -77,7 +77,10 @@ func SliderToVolume(sliderPos float64) float64 {
 
 // Update GUI setup to include sliders and current file label
 func SetupAudioPlayerGui() (*fyne.Container, error) {
-	LoadLibrary()
+	result := LoadLibrary()
+	if !result {
+		return nil, fmt.Errorf("error loading library")
+	}
 
 	// playBtn := SetupPlayBtn()
 	controlButtons := SetupControlButtons()

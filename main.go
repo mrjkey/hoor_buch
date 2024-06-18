@@ -33,20 +33,27 @@ func main() {
 	}
 }
 
+// set the library base path for server or client
 func getMode() bool {
 	mode := flag.String("mode", "", "Operation mode of the application (server, fetch, update)")
 	serverURL := flag.String("server-url", "", "URL of the server to fetch from or update to")
-	libraryPath := flag.String("library-path", "library.json", "Path to the library.json file")
+	serverPort := flag.String("port", "", "Port the server should listen on")
 
 	flag.Parse() // Parse the command-line arguments provided by the user
 
 	switch *mode {
 	case "server":
+		audio_manager.SetLibraryPath("../hb_server_files")
+		if *serverPort == "" {
+			fmt.Println("Server URL is required in fetch mode")
+			return false
+		}
 		// Start the application in server mode
-		fmt.Println("Starting server...")
-		audio_manager.StartServer() // Assuming startServer is a function that starts the HTTP server
+		fmt.Printf("Starting server from %s...\n", *serverPort)
+		audio_manager.StartServer(*serverPort) // Assuming startServer is a function that starts the HTTP server
 		return false
 	case "fetch":
+		audio_manager.SetLibraryPath("../hb_client_files")
 		if *serverURL == "" {
 			fmt.Println("Server URL is required in fetch mode")
 			return false
@@ -59,18 +66,20 @@ func getMode() bool {
 		}
 		return false
 	case "update":
+		audio_manager.SetLibraryPath("../hb_client_files")
 		if *serverURL == "" {
 			fmt.Println("Server URL is required in update mode")
 			return false
 		}
 		// Update the server with local library data
-		fmt.Printf("Updating library on %s with data from %s...\n", *serverURL, *libraryPath)
-		err := audio_manager.UpdateLibrary(*serverURL, *libraryPath) // Assuming updateLibrary is a function to send data
+		fmt.Printf("Updating library on %s with data from %s...\n", *serverURL, audio_manager.GetLibraryFilePath())
+		err := audio_manager.UpdateLibrary(*serverURL, audio_manager.GetLibraryFilePath()) // Assuming updateLibrary is a function to send data
 		if err != nil {
 			fmt.Printf("Error updating library: %v\n", err)
 		}
 		return false
 	default:
+		audio_manager.SetLibraryPath("../hb_client_files")
 		fmt.Println("Starting GUI mode as no flags were provided..")
 		return true
 	}

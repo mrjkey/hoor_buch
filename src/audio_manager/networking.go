@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -13,19 +14,21 @@ var (
 	serverLibrary ServerLibrary
 )
 
-func LoadServerLibrary() {
-	// load the library from a json file
-	file, err := os.Open("library.json")
-	if err != nil {
-		return
+func LoadServerLibrary() error {
+	// check if the server libarary directory exists, i.e. ../hb_server_files
+	// if it does not exist, create the directory
+	_, err := os.Stat(library.BaseFilePath)
+	if os.IsNotExist(err) {
+		os.Mkdir(library.BaseFilePath, 0755)
 	}
-	defer file.Close()
 
-	decoder := json.NewDecoder(file)
-	err = decoder.Decode(&serverLibrary)
-	if err != nil {
-		return
+	// load the library from a json file
+	result := LoadLibrary()
+	if !result {
+		fmt.Println("Failed to load library")
+		return fmt.Errorf("failed to load library")
 	}
+	return nil
 }
 
 func EnsureURLScheme(url string) string {
@@ -35,11 +38,17 @@ func EnsureURLScheme(url string) string {
 	return url
 }
 
-func StartServer() {
-	LoadServerLibrary()
+func StartServer(serverPort string) {
+	err := LoadServerLibrary()
+	if err != nil {
+		fmt.Println("Failed to load server library")
+		return
+	}
 	http.HandleFunc("/library", LibraryHandler)
 	http.HandleFunc("/register", RegisterClient)
-	http.ListenAndServe(":8080", nil)
+	http.HandleFunc("/upload", UploadHandler)
+	// get the server to listen locally on the provided port
+	http.ListenAndServe(":"+serverPort, nil)
 }
 
 func RegisterClient(w http.ResponseWriter, r *http.Request) {
@@ -86,20 +95,23 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		// Serve the current state of library.json
-		http.ServeFile(w, r, "library.json")
+		http.ServeFile(w, r, GetLibraryFilePath())
 		fmt.Println("Served library.json")
 	case "POST":
-		// Update library.json with the data from the request
-		outFile, err := os.Create("library.json")
-		if err != nil {
-			http.Error(w, "Failed to open library.json for writing", http.StatusInternalServerError)
-			return
-		}
-		defer outFile.Close()
-		_, err = io.Copy(outFile, r.Body)
-		if err != nil {
-			http.Error(w, "Failed to write to library.json", http.StatusInternalServerError)
-			return
+		// write to the library file
+		CopyResponseToFile(r.Body)
+		// reload the library with the new path
+		ReloadLibraryWithNewPath(library.BaseFilePath)
+
+		// After reloading, check for missing audio files
+		missingFiles := CheckMissingAudioFiles()
+		if len(missingFiles) > 0 {
+			// notify client about missing files
+			missingFilesJSON, _ := json.Marshal(missingFiles)
+			w.Write(missingFilesJSON)
+			fmt.Println("Missing files: ", missingFiles)
+		} else {
+			w.Write([]byte("No missing files"))
 		}
 		fmt.Println("Updated library.json")
 	default:
@@ -109,20 +121,24 @@ func LibraryHandler(w http.ResponseWriter, r *http.Request) {
 
 func FetchLibrary(serverURL string) error {
 	serverURL = EnsureURLScheme(serverURL)
+
+	// check if the client directory exists, i.e. ../hb_client_files
+	_, err := os.Stat(library.BaseFilePath)
+	if os.IsNotExist(err) {
+		os.Mkdir(library.BaseFilePath, 0755)
+	}
+
+	// Fetch the library data from the server
 	resp, err := http.Get(serverURL + "/library")
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// Write the fetched content to library.json
-	outFile, err := os.Create("library.json")
-	if err != nil {
-		return err
-	}
-	defer outFile.Close()
-
-	_, err = io.Copy(outFile, resp.Body)
+	// write to the library file
+	CopyResponseToFile(resp.Body)
+	// reload the library with the new path
+	ReloadLibraryWithNewPath(library.BaseFilePath)
 	return err
 }
 
@@ -136,4 +152,52 @@ func UpdateLibrary(serverURL string, libraryPath string) error {
 	serverURL = EnsureURLScheme(serverURL)
 	_, err = http.Post(serverURL+"/library", "application/json", libraryFile)
 	return err
+}
+
+func UploadHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case "POST":
+		// Parse the multipart form
+		err := r.ParseMultipartForm(1000 << 20) // 1000MB limit
+		if err != nil {
+			http.Error(w, "Error parsing form data", http.StatusBadRequest)
+			return
+		}
+
+		// Get the audiobook name from the form
+		audiobookName := r.FormValue("audiobookName")
+		if audiobookName == "" {
+			http.Error(w, "Error retrieving the audiobook name", http.StatusBadRequest)
+			return
+		}
+
+		// Get the file from the form
+		file, handler, err := r.FormFile("file")
+		if err != nil {
+			http.Error(w, "Error retrieving the file", http.StatusBadRequest)
+			return
+		}
+		defer file.Close()
+
+		dstPath := filepath.Join(library.BaseFilePath, audiobookName)
+		dstPath = filepath.Join(dstPath, handler.Filename)
+		// Create a new file in the destination path
+		dst, err := os.Create(dstPath)
+		if err != nil {
+			http.Error(w, "Error creating the file", http.StatusInternalServerError)
+			return
+		}
+		defer dst.Close()
+
+		// Copy the uploaded file to the destination
+		_, err = io.Copy(dst, file)
+		if err != nil {
+			http.Error(w, "Error saving the file", http.StatusInternalServerError)
+			return
+		}
+
+		w.Write([]byte("File uploaded successfully"))
+	default:
+		http.Error(w, "Unsupported HTTP method", http.StatusBadRequest)
+	}
 }

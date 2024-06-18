@@ -38,10 +38,7 @@
   "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.linkerArgs": [],
   "C_Cpp_Runner.includePaths": [],
-  "C_Cpp_Runner.includeSearch": [
-    "*",
-    "**/*"
-  ],
+  "C_Cpp_Runner.includeSearch": ["*", "**/*"],
   "C_Cpp_Runner.excludeSearch": [
     "**/build",
     "**/build/**",
@@ -59,9 +56,9 @@
   "cmake.sourceDirectory": "C:/Users/B-Itch/code/hoor_buch/ClientApp",
   "vim.leader": "<Space>",
   "editor.formatOnSave": true,
- "vim.hlsearch": true,
- "vim.easymotion": true,
+  "vim.hlsearch": true,
+  "vim.easymotion": true,
   "vim.incsearch": true,
   "vim.useSystemClipboard": true,
-  "vim.useCtrlKeys": true,
+  "vim.useCtrlKeys": true
 }
